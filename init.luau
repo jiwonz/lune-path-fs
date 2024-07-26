@@ -91,7 +91,7 @@ function pathfs.writeDir(path: AsPath)
 	return fs.writeDir(asPathToString(path))
 end
 
-pathfs.Path = require("../luau-path").Path :: {
+pathfs.Path = require("luau-path").Path :: {
 	new: () -> (Path),
 	from: (path: string) -> (Path)
 }
