@@ -4,7 +4,13 @@ local fs = require("@lune/fs")
 local types = require("types")
 local pathfs = {}
 
-type Contents = buffer | string
+export type Path = types.Path
+export type AsPath = types.AsPath
+export type Metadata = fs.Metadata
+export type MetadataKind = fs.MetadataKind
+export type MetadataPermissions = fs.MetadataPermissions
+export type WriteOptions = fs.WriteOptions
+export type Contents = buffer | string
 
 local function asPathToString(asPath: types.AsPath): string
 	if type(asPath) == "string" then
