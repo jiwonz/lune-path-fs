@@ -76,8 +76,17 @@ function pathfs.normalizePath(path: pathfs.Path)
 	return pathfs.Path.from(path:components())
 end
 
-function pathfs.getAbsolutePath(path: pathfs.Path)
+function pathfs.getAbsolutePathOf(path: pathfs.Path)
 	return pathfs.normalizePath(pathfs.cwd:join(path))
+end
+
+function pathfs.getNoCurDirPathOf(path: pathfs.Path)
+	local components = path:components()
+	local firstComponent = components:next()
+	if firstComponent.type == "curDir" then
+		return pathfs.Path.from(components)
+	end
+	return path
 end
 
 -- selene: allow(global_usage)
