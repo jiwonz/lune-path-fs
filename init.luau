@@ -69,18 +69,18 @@ function pathfs.getScriptPath(): types.Path
 	return pathfs.Path.from(getScriptPath())
 end
 
-function pathfs.normalizePath(path: pathfs.Path)
+function pathfs.normalizePath(path: pathfs.Path): pathfs.Path
 	for _,v in path:components() do
 		print(v)
 	end
 	return pathfs.Path.from(path:components())
 end
 
-function pathfs.getAbsolutePathOf(path: pathfs.Path)
+function pathfs.getAbsolutePathOf(path: pathfs.Path): pathfs.Path
 	return pathfs.normalizePath(pathfs.cwd:join(path))
 end
 
-function pathfs.getNoCurDirPathOf(path: pathfs.Path)
+function pathfs.getNoCurDirPathOf(path: pathfs.Path): pathfs.Path
 	local components = path:components()
 	local firstComponent = components:next()
 	if firstComponent.type == "curDir" then
