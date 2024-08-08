@@ -69,6 +69,17 @@ function pathfs.getScriptPath(): types.Path
 	return pathfs.Path.from(getScriptPath())
 end
 
+function pathfs.normalizePath(path: pathfs.Path)
+	for _,v in path:components() do
+		print(v)
+	end
+	return pathfs.Path.from(path:components())
+end
+
+function pathfs.getAbsolutePath(path: pathfs.Path)
+	return pathfs.normalizePath(pathfs.cwd:join(path))
+end
+
 -- selene: allow(global_usage)
 _G.SYS_PATH_SEPARATOR = process.os == "windows" and "\\" or "/"
 
@@ -77,5 +88,7 @@ pathfs.Path = require("luau-path").Path :: {
 	from: (path: types.AsPath) -> (types.Path),
 	is: (value: unknown) -> (boolean)
 }
+
+pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd))
 
 return pathfs
