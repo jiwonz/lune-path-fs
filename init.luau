@@ -80,9 +80,6 @@ function pathfs.getScriptPath(): types.Path
 end
 
 function pathfs.normalizePath(path: pathfs.Path): types.Path
-	for _,v in path:components() do
-		print(v)
-	end
 	return pathfs.Path.from(path:components())
 end
 
