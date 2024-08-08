@@ -3,7 +3,6 @@
 local fs = require("@lune/fs")
 local process = require("@lune/process")
 local types = require("types")
-local getScriptPath = require("submodules/getScriptPath")
 local pathfs = {}
 
 export type Path = types.Path
