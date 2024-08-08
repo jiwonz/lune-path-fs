@@ -66,7 +66,18 @@ function pathfs.writeDir(path: types.AsPath)
 end
 
 function pathfs.getScriptPath(): types.Path
-	return pathfs.Path.from(getScriptPath())
+	local path = string.match(debug.info(2, "s"), '%[string "([^"]*)"%]')
+	local luauPath = path .. ".luau"
+	local luaPath = path .. ".lua"
+	if fs.isFile(luauPath) then
+		return pathfs.Path.from(luauPath)
+	elseif fs.isFile(luaPath) then
+		return pathfs.Path.from(luaPath)
+	elseif fs.isFile(path) then
+		return pathfs.Path.from(path)
+	else
+		error("Failed to get script path")
+	end
 end
 
 function pathfs.normalizePath(path: pathfs.Path): types.Path
