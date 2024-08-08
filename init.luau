@@ -96,8 +96,10 @@ function pathfs.getNoCurDirPathOf(path: pathfs.Path): types.Path
 	return path
 end
 
+pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
+
 -- selene: allow(global_usage)
-_G.SYS_PATH_SEPARATOR = process.os == "windows" and "\\" or "/"
+_G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
 pathfs.Path = require("luau-path").Path :: {
 	new: () -> (types.Path),
