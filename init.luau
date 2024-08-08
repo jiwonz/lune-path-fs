@@ -1,7 +1,9 @@
 --!strict
 
 local fs = require("@lune/fs")
+local process = require("@lune/process")
 local types = require("types")
+local getScriptPath = require("submodules/getScriptPath")
 local pathfs = {}
 
 export type Path = types.Path
@@ -63,9 +65,17 @@ function pathfs.writeDir(path: types.AsPath)
 	return fs.writeDir(asPathToString(path))
 end
 
+function pathfs.getScriptPath(): types.Path
+	return pathfs.Path.from(getScriptPath())
+end
+
+-- selene: allow(global_usage)
+_G.SYS_PATH_SEPARATOR = process.os == "windows" and "\\" or "/"
+
 pathfs.Path = require("luau-path").Path :: {
 	new: () -> (types.Path),
-	from: (path: types.AsPath) -> (types.Path)
+	from: (path: types.AsPath) -> (types.Path),
+	is: (value: unknown) -> (boolean)
 }
 
 return pathfs

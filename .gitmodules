@@ -1,0 +1,3 @@
+[submodule "submodules/getScriptPath"]
+	path = submodules/getScriptPath
+	url = https://github.com/jiwonz/getScriptPath.lune.git
