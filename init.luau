@@ -66,31 +66,32 @@ end
 
 function pathfs.getScriptPath(): types.Path
 	local path = string.match(debug.info(2, "s"), '%[string "([^"]*)"%]')
-	local luauPath = path .. ".luau"
-	local luaPath = path .. ".lua"
-	if fs.isFile(luauPath) then
-		return pathfs.Path.from(luauPath)
-	elseif fs.isFile(luaPath) then
-		return pathfs.Path.from(luaPath)
-	elseif fs.isFile(path) then
-		return pathfs.Path.from(path)
-	else
-		error("Failed to get script path")
+	if path then
+		local luauPath = path .. ".luau"
+		local luaPath = path .. ".lua"
+		if fs.isFile(luauPath) then
+			return pathfs.Path.from(luauPath)
+		elseif fs.isFile(luaPath) then
+			return pathfs.Path.from(luaPath)
+		elseif fs.isFile(path) then
+			return pathfs.Path.from(path)
+		end
 	end
+	error("Failed to get script path")
 end
 
-function pathfs.normalizePath(path: pathfs.Path): types.Path
+function pathfs.normalizePath(path: types.Path): types.Path
 	return pathfs.Path.from(path:components())
 end
 
-function pathfs.getAbsolutePathOf(path: pathfs.Path): types.Path
+function pathfs.getAbsolutePathOf(path: types.Path): types.Path
 	return pathfs.normalizePath(pathfs.cwd:join(path))
 end
 
-function pathfs.getNoCurDirPathOf(path: pathfs.Path): types.Path
+function pathfs.getNoCurDirPathOf(path: types.Path): types.Path
 	local components = path:components()
 	local firstComponent = components:next()
-	if firstComponent.type == "curDir" then
+	if firstComponent and firstComponent.type == "curDir" then
 		return pathfs.Path.from(components)
 	end
 	return path
