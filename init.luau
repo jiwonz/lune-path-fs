@@ -12,7 +12,6 @@ export type MetadataKind = fs.MetadataKind
 export type MetadataPermissions = fs.MetadataPermissions
 export type WriteOptions = fs.WriteOptions
 export type Contents = buffer | string
-export type Component = types.Component
 
 local function asPathToString(asPath: types.AsPath): string
 	if type(asPath) == "string" then
