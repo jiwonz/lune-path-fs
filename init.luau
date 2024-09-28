@@ -103,9 +103,9 @@ pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
 _G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
 pathfs.Path = require("luau-path").Path :: {
-	new: () -> (types.Path),
-	from: (path: types.AsPath) -> (types.Path),
-	is: (value: unknown) -> (boolean)
+	new: () -> types.Path,
+	from: (path: types.AsPath) -> types.Path,
+	is: (value: unknown) -> boolean,
 }
 
 pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd))
@@ -118,8 +118,7 @@ function PathFrom:__index(k)
 	local index = current[k]
 	if current :: any ~= pathfs then
 		rawset(self, "_current", pathfs)
-	end
-	if type(index) == "function" then
+	elseif type(index) == "function" then
 		return function(...)
 			local args = { ... }
 			for i, v in args do
@@ -129,8 +128,7 @@ function PathFrom:__index(k)
 			end
 			return index(unpack(args))
 		end
-	end
-	if type(index) == "table" then
+	elseif type(index) == "table" then
 		rawset(self, "_current", index)
 		return self :: any
 	end
@@ -140,7 +138,7 @@ end
 function pathfs.from(path: types.AsPath): typeof(pathfs)
 	return setmetatable({
 		_from = pathfs.Path.from(path),
-		_current = pathfs
+		_current = pathfs,
 	}, PathFrom) :: any
 end
 
