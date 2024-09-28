@@ -123,7 +123,7 @@ function PathFrom:__index(k)
 		return function(...)
 			local args = { ... }
 			for i, v in args do
-				if type(v) == "string" or pathfs.Path.is(v) or Components.is(v) then
+				if pathfs.Path.is(v) or Components.is(v) then
 					args[i] = rawget(self, "_from"):join(v)
 				end
 			end
