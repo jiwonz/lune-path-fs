@@ -13,20 +13,11 @@ export type MetadataPermissions = fs.MetadataPermissions
 export type WriteOptions = fs.WriteOptions
 export type Contents = buffer | string
 
-local basePath: Path?
-
-local function fromBase(path: Path): Path
-	if basePath then
-		return basePath:join(path)
-	end
-	return path
-end
-
 local function asPathToString(asPath: types.AsPath): string
 	if type(asPath) == "string" then
 		return asPath
 	end
-	return fromBase(pathfs.Path.from(asPath)):toString()
+	return pathfs.Path.from(asPath):toString()
 end
 
 function pathfs.copy(from: types.AsPath, to: types.AsPath, overwriteOrOptions: (fs.WriteOptions | boolean)?)
@@ -90,35 +81,48 @@ function pathfs.getScriptPath(): types.Path
 end
 
 function pathfs.normalizePath(path: types.Path): types.Path
-	return pathfs.Path.from(fromBase(path):components())
+	return pathfs.Path.from(path:components())
 end
 
 function pathfs.getAbsolutePathOf(path: types.Path): types.Path
-	return pathfs.normalizePath(pathfs.cwd:join(fromBase(path)))
+	return pathfs.normalizePath(pathfs.cwd:join(path))
 end
 
 function pathfs.getNoCurDirPathOf(path: types.Path): types.Path
-	local components = fromBase(path):components()
+	local components = path:components()
 	local firstComponent = components:next()
 	if firstComponent and firstComponent.type == "curDir" then
 		return pathfs.Path.from(components)
 	end
-	return fromBase(path)
+	return path
 end
 
 local PathFrom = {}
 
 function PathFrom:__index(k)
-	local index = pathfs[k]
+	local index = rawget(self, "_current")[k]
 	if type(index) == "function" then
-		basePath = self._from
+		return function(...)
+			local args = { ... }
+			for i, v in args do
+				if pathfs.Path.is(v) then
+					args[i] = rawget(self, "_from"):join(v)
+				end
+			end
+			index(unpack(args))
+		end
+	end
+	if type(index) == "table" then
+		rawset(self, "_current", index)
+		return self
 	end
 	return index
 end
 
 function pathfs.from(path: types.AsPath): typeof(pathfs)
 	return setmetatable({
-		_from = asPathToString(path)
+		_from = asPathToString(path),
+		_current = pathfs
 	}, PathFrom) :: any
 end
 
