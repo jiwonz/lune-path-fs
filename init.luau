@@ -109,6 +109,6 @@ pathfs.Path = require("luau-path").Path :: {
 }
 
 pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd))
-pathfs.currentDirectory = pathfs.Path.new()
+pathfs.currentDirectory = pathfs.Path.from("")
 
 return pathfs
