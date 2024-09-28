@@ -118,7 +118,8 @@ function PathFrom:__index(k)
 	local index = current[k]
 	if current :: any ~= pathfs then
 		rawset(self, "_current", pathfs)
-	elseif type(index) == "function" then
+	end
+	if type(index) == "function" then
 		return function(...)
 			local args = { ... }
 			for i, v in args do
