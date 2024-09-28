@@ -97,35 +97,6 @@ function pathfs.getNoCurDirPathOf(path: types.Path): types.Path
 	return path
 end
 
-local PathFrom = {}
-
-function PathFrom:__index(k)
-	local index = rawget(self, "_current")[k]
-	if type(index) == "function" then
-		return function(...)
-			local args = { ... }
-			for i, v in args do
-				if pathfs.Path.is(v) then
-					args[i] = rawget(self, "_from"):join(v)
-				end
-			end
-			index(unpack(args))
-		end
-	end
-	if type(index) == "table" then
-		rawset(self, "_current", index)
-		return self
-	end
-	return index
-end
-
-function pathfs.from(path: types.AsPath): typeof(pathfs)
-	return setmetatable({
-		_from = asPathToString(path),
-		_current = pathfs
-	}, PathFrom) :: any
-end
-
 pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
 
 -- selene: allow(global_usage)
@@ -138,5 +109,39 @@ pathfs.Path = require("luau-path").Path :: {
 }
 
 pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd))
+
+local PathFrom = {}
+local Components = getmetatable(pathfs.Path.from("a"):components() :: any).__index
+
+function PathFrom:__index(k)
+	local current = rawget(self, "_current")
+	local index = current[k]
+	if current :: any ~= pathfs then
+		rawset(self, "_current", pathfs)
+	end
+	if type(index) == "function" then
+		return function(...)
+			local args = { ... }
+			for i, v in args do
+				if type(v) == "string" or pathfs.Path.is(v) or Components.is(v) then
+					args[i] = rawget(self, "_from"):join(v)
+				end
+			end
+			return index(unpack(args))
+		end
+	end
+	if type(index) == "table" then
+		rawset(self, "_current", index)
+		return self :: any
+	end
+	return index
+end
+
+function pathfs.from(path: types.AsPath): typeof(pathfs)
+	return setmetatable({
+		_from = pathfs.Path.from(path),
+		_current = pathfs
+	}, PathFrom) :: any
+end
 
 return pathfs
