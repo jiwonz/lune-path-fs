@@ -29,6 +29,33 @@ local function asPathToString(asPath: AsPath): string
 	return getPath(pathfs.Path.from(asPath)):toString()
 end
 
+local function normalizePath(path: Path): Path
+	return pathfs.Path.from(path:components())
+end
+
+local function extendTable(target, tbl)
+	for _, v in tbl do
+		table.insert(target, v)
+	end
+end
+
+pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
+
+-- selene: allow(global_usage)
+_G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
+
+pathfs.Path = require("luau-path").Path :: {
+	new: () -> types.Path,
+	from: (path: types.AsPath) -> types.Path,
+	is: (value: unknown) -> boolean,
+}
+
+pathfs.Component = getmetatable(pathfs.Path.from("a"):components():collect()[1] :: any).__index :: types.Component
+
+pathfs.normalizePath = normalizePath
+
+pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd))
+
 function pathfs.copy(from: AsPath, to: AsPath, overwriteOrOptions: (fs.WriteOptions | boolean)?)
 	return fs.copy(asPathToString(from), asPathToString(to), overwriteOrOptions)
 end
@@ -89,12 +116,8 @@ function pathfs.getScriptPath(): Path
 	error("Failed to get script path")
 end
 
-function pathfs.normalizePath(path: Path): Path
-	return pathfs.Path.from(path:components())
-end
-
 function pathfs.getAbsolutePathOf(path: Path): Path
-	return pathfs.normalizePath(pathfs.cwd:join(path))
+	return normalizePath(pathfs.cwd:join(path))
 end
 
 function pathfs.getNoCurDirPathOf(path: Path): Path
@@ -112,20 +135,54 @@ function pathfs.setCurrentDir(path: AsPath)
 		error("current path must be a relative path")
 	end
 	currentDir = newCurrentDir
-	pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd):join(newCurrentDir))
+	pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd):join(newCurrentDir))
 end
 
-pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
+function pathfs.diff(path: AsPath, base: AsPath): Path?
+	local targetPath = pathfs.Path.from(path)
+	local basePath = pathfs.Path.from(base)
 
--- selene: allow(global_usage)
-_G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
-
-pathfs.Path = require("luau-path").Path :: {
-	new: () -> types.Path,
-	from: (path: types.AsPath) -> types.Path,
-	is: (value: unknown) -> boolean,
-}
-
-pathfs.cwd = pathfs.normalizePath(pathfs.Path.from(process.cwd))
+	if targetPath:isAbsolute() ~= basePath:isAbsolute() then
+		if targetPath:isAbsolute() then
+			return targetPath
+		else
+			return
+		end
+	else
+		local ita = targetPath:components()
+		local itb = basePath:components()
+		local comps = {}
+		while true do
+			local a, b = ita:next(), itb:next()
+			if not a and not b then
+				break
+			elseif a and not b then
+				table.insert(comps, a)
+				extendTable(comps, ita:collect())
+			elseif not a then
+				table.insert(comps, pathfs.Component.parentDir())
+			elseif a and b and #comps == 0 and a == b then
+				continue
+			elseif a and b and b.type == "curDir" then
+				table.insert(comps, a)
+			elseif a and b and b.type == "parentDir" then
+				return
+			elseif a and b then
+				table.insert(comps, pathfs.Component.parentDir())
+				for _, _ in itb do
+					table.insert(comps, pathfs.Component.parentDir())
+				end
+				table.insert(comps, a)
+				extendTable(comps, ita:collect())
+				break
+			end
+		end
+		local strComps = {}
+		for _, comp in comps do
+			table.insert(strComps, comp:toString())
+		end
+		return pathfs.Path.from(table.concat(strComps, pathfs.pathSeparator))
+	end
+end
 
 return pathfs

@@ -23,7 +23,7 @@ type ComponentCommon = {
 
 export type Component = ComponentEnum & ComponentCommon
 
-type ComponentStatic = Component & {
+export type ComponentStatic = Component & {
     normal: (value: string) -> Component,
     rootDir: () -> Component,
     curDir: () -> Component,
