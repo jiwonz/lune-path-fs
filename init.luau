@@ -138,7 +138,8 @@ function pathfs.setCurrentDir(path: AsPath)
 	pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd):join(newCurrentDir))
 end
 
-function pathfs.diff(path: AsPath, base: AsPath): Path?
+function pathfs.diff(path: AsPath, base: AsPath, separator: string?): Path?
+	separator = separator or pathfs.pathSeparator
 	local targetPath = pathfs.Path.from(path)
 	local basePath = pathfs.Path.from(base)
 
@@ -181,7 +182,7 @@ function pathfs.diff(path: AsPath, base: AsPath): Path?
 		for _, comp in comps do
 			table.insert(strComps, comp:toString())
 		end
-		return pathfs.Path.from(table.concat(strComps, pathfs.pathSeparator))
+		return pathfs.Path.from(table.concat(strComps, separator))
 	end
 end
 
