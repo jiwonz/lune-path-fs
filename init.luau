@@ -171,8 +171,14 @@ end
 	@param path The directory path to search in
 	@return A list of files & directories found
 ]=]
-function pathfs.readDir(path: AsPath)
-	return fs.readDir(asPathToString(path))
+function pathfs.readDir(path: AsPath): { Path }
+	local dirs = fs.readDir(asPathToString(path))
+
+	for i, v in dirs do
+		dirs[i] = pathfs.Path.from(v)
+	end
+
+	return dirs
 end
 
 --[=[
