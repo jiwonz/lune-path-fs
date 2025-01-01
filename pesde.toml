@@ -1,10 +1,10 @@
 name = "jiwonz/pathfs"
-version = "0.1.0"
+version = "0.2.0"
 description = "luau-path + @lune/fs"
 authors = ["jeparlefrancais <jeparlefrancais21@gmail.com>", "jiwonz"]
 repository = "https://github.com/jiwonz/lune-path-fs/"
 license = "MIT"
-includes = ["README.md", "pesde.toml", "init.luau", "types", "luau-path.luau", "LICENSE.md"]
+includes = ["README.md", "pesde.toml", "init.luau", "LICENSE.md"]
 
 [target]
 environment = "lune"
@@ -12,3 +12,10 @@ lib = "init.luau"
 
 [indices]
 default = "https://github.com/daimond113/pesde-index"
+
+[dependencies]
+luau_path = { name = "jiwonz/luau_path", version = "^0.1.1", target = "luau" }
+greentea = { name = "corecii/greentea", version = "^0.4.11" }
+
+[dev_dependencies]
+frktest = { name = "itsfrank/frktest", version = "^0.0.2" }

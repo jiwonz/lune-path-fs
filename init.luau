@@ -1,22 +1,41 @@
---!strict
-
 local fs = require("@lune/fs")
 local process = require("@lune/process")
-local types = require("types")
-local pathfs = {}
+local luauPath = require("luau_packages/luau_path")
+local Path = luauPath.Path
+local gt = require("lune_packages/greentea")
 
-export type Path = types.Path
-export type AsPath = types.AsPath
+export type Components = typeof(Path.new():components())
+export type Path = luauPath.Path
+
+local PathType = gt.build(gt.custom(luauPath.Path.is, "Path") :: Path)
+local Components = getmetatable(Path.from("a"):components() :: any).__index :: Components & {
+    new: (path: string, prefix: any?, hasPhysicalRoot: boolean) -> Components,
+    is: (value: unknown) -> boolean,
+}
+local ComponentsType = gt.build(gt.custom(Components.is, "Components") :: Components)
+local AsPathType = gt.build(gt.union(
+	gt.string(),
+	PathType:type(),
+	ComponentsType:type()
+))
+local ContentsType = gt.build(gt.union(
+	gt.string(), gt.buffer()
+))
+
+export type Component = typeof(Path.new():components():collect()[1])
+export type AsPath = typeof(AsPathType:type())
 export type Metadata = fs.Metadata
 export type MetadataKind = fs.MetadataKind
 export type MetadataPermissions = fs.MetadataPermissions
 export type WriteOptions = fs.WriteOptions
-export type Contents = buffer | string
+export type Contents = typeof(ContentsType:type())
 
 local currentDir: Path?
 
-local function Path(path: AsPath): Path
-	local p = pathfs.Path.from(path)
+local pathfs = {}
+
+local function createPath(path: AsPath): Path
+	local p = Path.from(path)
 	if currentDir then
 		return currentDir:join(p)
 	end
@@ -27,14 +46,14 @@ local function asPathToString(asPath: AsPath): string
 	if type(asPath) == "string" then
 		return asPath
 	end
-	return Path(asPath):toString()
+	return createPath(asPath):toString()
 end
 
 local function normalizePath(path: Path): Path
-	return pathfs.Path.from(path:components())
+	return Path.from(path:components())
 end
 
-local function extendTable(target, tbl)
+local function extendTable<K, V>(target: { V }, tbl: { [K]: V })
 	for _, v in tbl do
 		table.insert(target, v)
 	end
@@ -45,17 +64,19 @@ pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
 -- selene: allow(global_usage)
 _G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
-pathfs.Path = require("luau-path").Path :: {
-	new: () -> types.Path,
-	from: (path: types.AsPath) -> types.Path,
-	is: (value: unknown) -> boolean,
-}
+pathfs.Path = Path
 
-pathfs.Component = getmetatable(pathfs.Path.from("a"):components():collect()[1] :: any).__index :: types.Component
+pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any).__index :: Component & {
+    normal: (value: string) -> Component,
+    rootDir: () -> Component,
+    curDir: () -> Component,
+    parentDir: () -> Component,
+    prefix: (raw: string, prefix: any) -> Component,
+}
 
 pathfs.normalizePath = normalizePath
 
-pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd))
+pathfs.cwd = normalizePath(Path.from(process.cwd))
 
 --[=[
 	@within FS
@@ -75,9 +96,16 @@ pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd))
 	@param to The path to copy to
 	@param overwriteOrOptions Options for the target path, such as if should be overwritten if it already exists
 ]=]
-function pathfs.copy(from: AsPath, to: AsPath, overwriteOrOptions: (fs.WriteOptions | boolean)?)
+pathfs.copy = gt.wrapFn(gt.fn(
+	gt.args(
+		AsPathType:type(),
+		AsPathType:type(),
+		gt.any({ allowNil = true }) :: (fs.WriteOptions | boolean)?
+	),
+	gt.returns()
+), function(from, to, overwriteOrOptions)
 	return fs.copy(asPathToString(from), asPathToString(to), overwriteOrOptions)
-end
+end)
 
 --[=[
 	@within FS
@@ -93,9 +121,12 @@ end
 	@param path The directory path to check
 	@return If the path is a directory or not
 ]=]
-function pathfs.isDir(path: AsPath)
+pathfs.isDir = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(gt.boolean())
+), function(path)
 	return fs.isDir(asPathToString(path))
-end
+end)
 
 --[=[
 	@within FS
@@ -111,9 +142,12 @@ end
 	@param path The file path to check
 	@return If the path is a file or not
 ]=]
-function pathfs.isFile(path: AsPath)
+pathfs.isFile = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(gt.boolean())
+), function(path)
 	return fs.isFile(asPathToString(path))
-end
+end)
 
 --[=[
 	@within FS
@@ -129,9 +163,12 @@ end
 	@param path The path to get metadata for
 	@return Metadata for the path
 ]=]
-function pathfs.metadata(path: AsPath)
+pathfs.metadata = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(gt.any() :: fs.Metadata)
+), function(path)
 	return fs.metadata(asPathToString(path))
-end
+end)
 
 --[=[
 	@within FS
@@ -152,9 +189,16 @@ end
 	@param to The path to move to
 	@param overwriteOrOptions Options for the target path, such as if should be overwritten if it already exists
 ]=]
-function pathfs.move(from: AsPath, to: AsPath, overwriteOrOptions: (fs.WriteOptions | boolean)?)
+pathfs.move = gt.wrapFn(gt.fn(
+	gt.args(
+		AsPathType:type(),
+		AsPathType:type(),
+		gt.any({ allowNil = true }) :: (fs.WriteOptions | boolean)?
+	),
+	gt.returns()
+), function(from, to, overwriteOrOptions)
 	return fs.move(asPathToString(from), asPathToString(to), overwriteOrOptions)
-end
+end)
 
 --[=[
 	@within FS
@@ -171,15 +215,18 @@ end
 	@param path The directory path to search in
 	@return A list of files & directories found
 ]=]
-function pathfs.readDir(path: AsPath): { Path }
-	local dirs = fs.readDir(asPathToString(path))
+pathfs.readDir = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(gt.array(PathType:type()))
+), function(path)
+	local dirs = fs.readDir(asPathToString(path)) :: { any }
 
 	for i, v in dirs do
-		dirs[i] = pathfs.Path.from(v)
+		dirs[i] = Path.from(v)
 	end
 
 	return dirs
-end
+end)
 
 --[=[
 	@within FS
@@ -196,9 +243,12 @@ end
 	@param path The path to the file to read
 	@return The contents of the file
 ]=]
-function pathfs.readFile(path: AsPath)
+pathfs.readFile = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(gt.string())
+), function(path)
 	return fs.readFile(asPathToString(path))
-end
+end)
 
 --[=[
 	@within FS
@@ -214,6 +264,7 @@ end
 	@param path The directory to remove
 ]=]
 function pathfs.removeDir(path: AsPath)
+	AsPathType:assert(path)
 	return fs.removeDir(asPathToString(path))
 end
 
@@ -231,6 +282,7 @@ end
 	@param path The file to remove
 ]=]
 function pathfs.removeFile(path: AsPath)
+	AsPathType:assert(path)
 	return fs.removeFile(asPathToString(path))
 end
 
@@ -249,6 +301,8 @@ end
 	@param contents The contents of the file
 ]=]
 function pathfs.writeFile(path: AsPath, contents: Contents)
+	AsPathType:assert(path)
+	ContentsType:assert(contents)
 	return fs.writeFile(asPathToString(path), contents)
 end
 
@@ -265,7 +319,8 @@ end
 
 	@param path The directory to create
 ]=]
-function pathfs.writeDir(path: types.AsPath)
+function pathfs.writeDir(path: AsPath)
+	AsPathType:assert(path)
 	return fs.writeDir(asPathToString(path))
 end
 
@@ -276,37 +331,49 @@ end
 
 	* script path found in `debug.info(level)` is not resolvable.
 ]=]
-function pathfs.getScriptPath(level: number?): Path
+pathfs.getScriptPath = gt.wrapFn(gt.fn(
+	gt.args(gt.opt(gt.number())),
+	gt.returns(PathType:type())
+), function(level)
 	local path = string.match(debug.info(level or 2, "s"), '%[string "([^"]*)"%]')
 	if path then
-		local luauPath = path .. ".luau"
-		local luaPath = path .. ".lua"
-		if fs.isFile(luauPath) then
-			return pathfs.Path.from(luauPath)
-		elseif fs.isFile(luaPath) then
-			return pathfs.Path.from(luaPath)
+		local luauOne = path .. ".luau"
+		local luaOne = path .. ".lua"
+		if fs.isFile(luauOne) then
+			return Path.from(luauOne)
+		elseif fs.isFile(luaOne) then
+			return Path.from(luaOne)
 		elseif fs.isFile(path) then
-			return pathfs.Path.from(path)
+			return Path.from(path)
 		end
 	end
 	error("Failed to get script path")
-end
+end)
 
 --[=[
 	Gets absolute path of given path just by joining the `pathfs.cwd` and the path.
 ]=]
-function pathfs.getAbsolutePathOf(path: Path): Path
+pathfs.getAbsolutePathOf = gt.wrapFn(gt.fn(
+	gt.args(PathType:type()),
+	gt.returns(PathType:type())
+), function(path)
 	return normalizePath(pathfs.cwd:join(path))
-end
+end)
 
-function pathfs.getNoCurDirPathOf(path: Path): Path
+--[=[
+	Gets a path without the current directory component.
+]=]
+pathfs.withoutCurrentDirectoryComponent = gt.wrapFn(gt.fn(
+	gt.args(PathType:type()),
+	gt.returns(PathType:type())
+), function(path)
 	local components = path:components()
 	local firstComponent = components:next()
 	if firstComponent and firstComponent.type == "curDir" then
-		return Path(components)
+		return createPath(components)
 	end
 	return path
-end
+end)
 
 --[=[
 	Sets the current directory path virtually.
@@ -316,22 +383,31 @@ end
 	* Given path is not a relative path.
 ]=]
 function pathfs.setCurrentDir(path: AsPath)
-	local newCurrentDir: Path = pathfs.Path.from(asPathToString(path))
+	AsPathType:assert(path)
+	local newCurrentDir: Path = Path.from(asPathToString(path))
 	if not newCurrentDir:isRelative() then
 		error("Current path must be a relative path")
 	end
 	currentDir = newCurrentDir
-	pathfs.cwd = normalizePath(pathfs.Path.from(process.cwd):join(newCurrentDir))
+	pathfs.cwd = normalizePath(Path.from(process.cwd):join(newCurrentDir))
 end
 
--- inspired by https://github.com/Manishearth/pathdiff
 --[=[
 	Construct a relative path from a provided base directory path to the provided path.
+
+	Implementation inspired by https://github.com/Manishearth/pathdiff
 ]=]
-function pathfs.diff(path: AsPath, base: AsPath, separator: string?): Path?
+pathfs.diff = gt.wrapFn(gt.fn(
+	gt.args(
+		AsPathType:type(),
+		AsPathType:type(),
+		gt.opt(gt.string())
+	),
+	gt.returns(gt.opt(PathType:type()))
+), function(path, base, separator)
 	separator = separator or pathfs.pathSeparator
-	local targetPath = pathfs.Path.from(path)
-	local basePath = pathfs.Path.from(base)
+	local targetPath = Path.from(path)
+	local basePath = Path.from(base)
 
 	if targetPath:isAbsolute() ~= basePath:isAbsolute() then
 		if targetPath:isAbsolute() then
@@ -372,21 +448,24 @@ function pathfs.diff(path: AsPath, base: AsPath, separator: string?): Path?
 		for _, comp in comps do
 			table.insert(strComps, comp:toString())
 		end
-		return pathfs.Path.from(table.concat(strComps, separator))
+		return Path.from(table.concat(strComps, separator))
 	end
-end
+end)
 
 --[=[
 	Returns the canonical, absolute form of a path with all intermediate components normalized and symbolic links resolved.
 ]=]
-function pathfs.canonicalize(path: AsPath): Path
-	local p = Path(path)
+pathfs.canonicalize = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type()),
+	gt.returns(PathType:type())
+), function(path)
+	local p = createPath(path)
 	local absolutePath = pathfs.getAbsolutePathOf(p)
 	if pathfs.isFile(absolutePath) or pathfs.isDir(absolutePath) then
 		return absolutePath
 	end
 	error(`Failed to canonicalize the path('{path}'). path does not exist`)
-end
+end)
 
 --[=[
 	Creates a new `Path` based on the current dir path.
@@ -396,8 +475,11 @@ end
 	* Errors while calling `pathfs.getScriptPath()`.
 	* Current script path's parent path does not exist.
 ]=]
-function pathfs.fromDir(path: AsPath, relative: boolean?): Path
-	local p = Path(path)
+pathfs.fromDir = gt.wrapFn(gt.fn(
+	gt.args(AsPathType:type(), gt.opt(gt.boolean())),
+	gt.returns(PathType:type())
+), function(path, relative)
+	local p = createPath(path)
 	local currentScriptPath = pathfs.getScriptPath(3)
 	local resolved = if relative == true then currentScriptPath else pathfs.canonicalize(currentScriptPath)
 	local parent = resolved:parent()
@@ -405,7 +487,7 @@ function pathfs.fromDir(path: AsPath, relative: boolean?): Path
 		return parent:join(p)
 	end
 	error("Failed to perform 'fromDir'. parent does not exist in the script path")
-end
+end)
 
 --[=[
 	Get the dir path based on the current script context.
@@ -415,7 +497,10 @@ end
 	* Errors while calling `pathfs.getScriptPath()`.
 	* Current script path's parent path does not exist.
 ]=]
-function pathfs.getDir(relative: boolean?): Path
+pathfs.getDir = gt.wrapFn(gt.fn(
+	gt.args(gt.opt(gt.boolean())),
+	gt.returns(PathType:type())
+), function(relative)
 	local currentScriptPath = pathfs.getScriptPath(3)
 	local resolved = if relative == true then currentScriptPath else pathfs.canonicalize(currentScriptPath)
 	local parent = resolved:parent()
@@ -423,6 +508,6 @@ function pathfs.getDir(relative: boolean?): Path
 		return parent
 	end
 	error("Failed to get dir path. parent does not exist in the script path")
-end
+end)
 
 return pathfs
