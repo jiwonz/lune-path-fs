@@ -1,5 +1,5 @@
 name = "jiwonz/pathfs"
-version = "0.2.0"
+version = "0.2.1"
 description = "luau-path + @lune/fs"
 authors = ["jeparlefrancais <jeparlefrancais21@gmail.com>", "jiwonz"]
 repository = "https://github.com/jiwonz/lune-path-fs/"
