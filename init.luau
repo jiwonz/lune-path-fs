@@ -1,8 +1,8 @@
 local fs = require("@lune/fs")
 local process = require("@lune/process")
-local luauPath = require("luau_packages/luau_path")
+local luauPath = require("./luau_packages/luau_path")
 local Path = luauPath.Path
-local gt = require("lune_packages/greentea")
+local gt = require("./lune_packages/greentea")
 
 export type Components = typeof(Path.new():components())
 export type Path = luauPath.Path
