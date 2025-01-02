@@ -7,7 +7,8 @@ This library is based on [luau-path](https://github.com/seaofvoices/luau-path) b
 ## Features
 - Includes typed `luau-path` utility (now fully typed)
 - @lune/fs library but supports path objects (`AsPath` objects which include string and `Path` objects)
-- Does not require `node` & `npm` anymore since it includes built script of `luau-path`
+- Does not require `node` & `npm` anymore (now dependency `luau_path` is published to pesde!)
+- Includes runtime type checkers via greentea.
 
 ## Installation
 Install via pesde
