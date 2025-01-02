@@ -357,13 +357,16 @@ pathfs.getAbsolutePathOf = gt.wrapFn(gt.fn(
 	gt.args(PathType:type()),
 	gt.returns(PathType:type())
 ), function(path)
+	if path:isAbsolute() then
+		return path
+	end
 	return normalizePath(pathfs.cwd:join(path))
 end)
 
 --[=[
 	Gets a path without the current directory component.
 ]=]
-pathfs.withoutCurrentDirectoryComponent = gt.wrapFn(gt.fn(
+pathfs.withoutCurDir = gt.wrapFn(gt.fn(
 	gt.args(PathType:type()),
 	gt.returns(PathType:type())
 ), function(path)

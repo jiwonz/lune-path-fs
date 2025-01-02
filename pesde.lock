@@ -1,5 +1,5 @@
 name = "jiwonz/pathfs"
-version = "0.2.1"
+version = "0.2.2"
 target = "lune"
 
 [graph."corecii/greentea"."0.4.11 lune"]
