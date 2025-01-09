@@ -60,12 +60,9 @@ local function extendTable<K, V>(target: { V }, tbl: { [K]: V })
 end
 
 pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
-
 -- selene: allow(global_usage)
 _G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
-
 pathfs.Path = Path
-
 pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any).__index :: Component & {
     normal: (value: string) -> Component,
     rootDir: () -> Component,
@@ -73,10 +70,11 @@ pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any)
     parentDir: () -> Component,
     prefix: (raw: string, prefix: any) -> Component,
 }
-
 pathfs.normalizePath = normalizePath
-
 pathfs.cwd = normalizePath(Path.from(process.cwd))
+pathfs.gt = {}
+pathfs.gt.Path = PathType
+pathfs.gt.AsPath = AsPathType
 
 --[=[
 	@within FS

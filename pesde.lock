@@ -1,5 +1,5 @@
 name = "jiwonz/pathfs"
-version = "0.2.2"
+version = "0.2.3"
 target = "lune"
 
 [graph."corecii/greentea"."0.4.11 lune"]
@@ -38,20 +38,20 @@ index_url = "https://github.com/daimond113/pesde-index"
 environment = "lune"
 lib = "src/_pesde_init.luau"
 
-[graph."jiwonz/luau_disk"."0.1.2 luau"]
+[graph."jiwonz/luau_disk"."0.1.4 luau"]
 resolved_ty = "standard"
 
-[graph."jiwonz/luau_disk"."0.1.2 luau".target]
+[graph."jiwonz/luau_disk"."0.1.4 luau".target]
 environment = "luau"
 lib = "src/init.luau"
 
-[graph."jiwonz/luau_disk"."0.1.2 luau".pkg_ref]
+[graph."jiwonz/luau_disk"."0.1.4 luau".pkg_ref]
 ref_ty = "pesde"
 name = "jiwonz/luau_disk"
-version = "0.1.2"
+version = "0.1.4"
 index_url = "https://github.com/pesde-pkg/index"
 
-[graph."jiwonz/luau_disk"."0.1.2 luau".pkg_ref.target]
+[graph."jiwonz/luau_disk"."0.1.4 luau".pkg_ref.target]
 environment = "luau"
 lib = "src/init.luau"
 
@@ -64,7 +64,7 @@ environment = "luau"
 lib = "src/init.luau"
 
 [graph."jiwonz/luau_path"."0.1.1 luau".dependencies]
-"jiwonz/luau_disk" = ["0.1.2 luau", "luau_disk"]
+"jiwonz/luau_disk" = ["0.1.4 luau", "luau_disk"]
 
 [graph."jiwonz/luau_path"."0.1.1 luau".pkg_ref]
 ref_ty = "pesde"
