@@ -2,22 +2,9 @@
 luau-path + @lune/fs
 
 ## Changes in v0.3.0 (includes some breaking changes)
-- Moved `fs` into `pathfs.fs`.
-### old:
-```luau
-local pathfs = require("./path/to/pathfs")
-
-pathfs.writeFile("path")
-```
-### new:
-```luau
-local pathfs = require("./path/to/pathfs")
-local fs = pathfs.fs
-
-fs.writeFile("path")
-```
-- Removed `pathfs.gt`.
+### Added
 - Added `Directory` utility class.
+#### example:
 ```luau
 local dir = pathfs.Directory.new("new_dir") -- just represents a directory path.
 dir:writeDir()
@@ -28,6 +15,7 @@ local dir = pathfs.Directory.create("new_dir") -- writes a directory if there is
 local dir = pathfs.Directory.fromExisting("new_dir") -- gets/creates a Directory object from existing directory path.
 ```
 - Added `File` utility class.
+#### example:
 ```luau
 local file = pathfs.File.new("new_file") -- just represents a file path.
 file:writeFile("hello")
@@ -37,6 +25,25 @@ local file = pathfs.File.create("new_dir", "initial contents") -- writes a file 
 
 local file = pathfs.File.fromExisting("new_dir") -- gets/creates a File object from existing file path.
 ```
+
+### Changed
+- Moved `fs` into `pathfs.fs`.
+#### old:
+```luau
+local pathfs = require("./path/to/pathfs")
+
+pathfs.writeFile("path")
+```
+#### new:
+```luau
+local pathfs = require("./path/to/pathfs")
+local fs = pathfs.fs
+
+fs.writeFile("path")
+```
+- Removed `pathfs.gt`.
+
+### etc
 - Better function types and greentea runtime type checker rework.
 - Organize the library source codes.
 
