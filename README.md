@@ -1,6 +1,43 @@
 # lune-path-fs
 luau-path + @lune/fs
 
+## Changes in v0.3.0 (breaking changes)
+- Moved `fs` into `pathfs.fs`.
+old:
+```luau
+local pathfs = require("./path/to/pathfs")
+
+pathfs.writeFile("path")
+```
+new:
+```luau
+local pathfs = require("./path/to/pathfs")
+local fs = pathfs.fs
+
+fs.writeFile("path")
+```
+- Removed `pathfs.gt`.
+- Added `Directory` utility class.
+```luau
+local dir = pathfs.Directory.new("new_dir") -- just represents a directory path.
+dir:writeDir()
+dir:removeDir()
+
+local dir = pathfs.Directory.create("new_dir") -- writes a directory if there is no file/dir at this path already.
+
+local dir = pathfs.Directory.fromExisting("new_dir") -- gets/creates a Directory object from existing directory path.
+```
+- Added `File` utility class.
+```luau
+local file = pathfs.File.new("new_file") -- just represents a file path.
+file:writeFile("hello")
+file:removeFile()
+
+local file = pathfs.File.create("new_dir", "initial contents") -- writes a file if there is no file/dir at this path already.
+
+local file = pathfs.File.fromExisting("new_dir") -- gets/creates a File object from existing file path.
+```
+
 ## Note
 This library is based on [luau-path](https://github.com/seaofvoices/luau-path) by seaofvoices
 
