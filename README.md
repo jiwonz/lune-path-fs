@@ -1,15 +1,15 @@
 # lune-path-fs
 luau-path + @lune/fs
 
-## Changes in v0.3.0 (breaking changes)
+## Changes in v0.3.0 (includes some breaking changes)
 - Moved `fs` into `pathfs.fs`.
-old:
+### old:
 ```luau
 local pathfs = require("./path/to/pathfs")
 
 pathfs.writeFile("path")
 ```
-new:
+### new:
 ```luau
 local pathfs = require("./path/to/pathfs")
 local fs = pathfs.fs
@@ -37,6 +37,8 @@ local file = pathfs.File.create("new_dir", "initial contents") -- writes a file 
 
 local file = pathfs.File.fromExisting("new_dir") -- gets/creates a File object from existing file path.
 ```
+- Better function types and greentea runtime type checker rework.
+- Organize the library source codes.
 
 ## Note
 This library is based on [luau-path](https://github.com/seaofvoices/luau-path) by seaofvoices
