@@ -1,7 +1,7 @@
 # lune-path-fs
 luau-path + @lune/fs
 
-## Changes in v0.3.0 (includes some breaking changes)
+## v0.3.0 (includes some breaking changes)
 ### Added
 - Added `Directory` utility class.
 #### example:
