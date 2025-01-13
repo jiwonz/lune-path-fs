@@ -22,6 +22,7 @@ export type File = typeof(setmetatable(
 
 type FileImpl = {
 	__index: FileImpl,
+	new: (filePath: typeof(AsPathType:type())) -> File,
 	fromExisting: (filePath: typeof(AsPathType:type())) -> File,
 	create: (
 		filePath: typeof(AsPathType:type()),
@@ -38,11 +39,19 @@ type FileImpl = {
 local File = {} :: FileImpl
 File.__index = File
 
+function File.new(filePath)
+	AsPathType:assert(filePath)
+
+	return setmetatable({
+		path = Path.from(filePath),
+	}, File)
+end
+
 function File.fromExisting(filePath)
 	AsPathType:assert(filePath)
 
 	if not fs.isFile(filePath) then
-		error("There is no file at that path.")
+		error(`There is no file at that path({filePath})`)
 	end
 
 	return setmetatable({
@@ -59,11 +68,11 @@ function File.create(filePath, initialContents, overwrite)
 		if overwrite then
 			fs.removeDir(filePath)
 		else
-			error(`Cannot create a new file. A file already exists at that path('{filePath}')`)
+			error(`Cannot create a new file. A file already exists at that path({filePath})`)
 		end
 	end
 	if fs.isDir(filePath) then
-		error(`Cannot create a new file. The directory already exists at that path('{filePath}')`)
+		error(`Cannot create a new file. The directory already exists at that path({filePath})`)
 	end
 	fs.writeFile(filePath, initialContents)
 

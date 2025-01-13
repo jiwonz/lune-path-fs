@@ -12,6 +12,8 @@ local Directory = require("./Directory")
 local luneFileSystem = require("@lune/fs")
 local File = require("./File")
 
+export type Directory = Directory.Directory
+export type File = File.File
 export type Metadata = luneFileSystem.Metadata
 export type MetadataKind = luneFileSystem.MetadataKind
 export type MetadataPermissions = luneFileSystem.MetadataPermissions
