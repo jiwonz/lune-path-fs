@@ -14,9 +14,7 @@ local arrayOfPathType = types.arrayOfPathType
 
 local fs = {}
 
-local overwriteOrOptionsType = gt.build(
-	gt.any({ allowNil = true }) :: (luneFileSystem.WriteOptions | boolean)?
-)
+local overwriteOrOptionsType = gt.build(gt.any({ allowNil = true }) :: (luneFileSystem.WriteOptions | boolean)?)
 --[=[
 	@within FS
 

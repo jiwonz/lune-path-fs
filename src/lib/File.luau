@@ -15,10 +15,7 @@ local FileTableType = gt.build(gt.table({
 	path = PathType:type(),
 }))
 
-export type File = typeof(setmetatable(
-	{} :: typeof(FileTableType:type()),
-	{} :: FileImpl
-))
+export type File = typeof(setmetatable({} :: typeof(FileTableType:type()), {} :: FileImpl))
 
 type FileImpl = {
 	__index: FileImpl,

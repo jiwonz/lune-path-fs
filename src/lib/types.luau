@@ -6,18 +6,12 @@ export type Components = typeof(Path.new():components())
 
 local PathType = gt.build(gt.custom(luauPath.Path.is, "Path") :: luauPath.Path)
 local Components = getmetatable(Path.from("a"):components() :: any).__index :: Components & {
-    new: (path: string, prefix: any?, hasPhysicalRoot: boolean) -> Components,
-    is: (value: unknown) -> boolean,
+	new: (path: string, prefix: any?, hasPhysicalRoot: boolean) -> Components,
+	is: (value: unknown) -> boolean,
 }
 local ComponentsType = gt.build(gt.custom(Components.is, "Components") :: Components)
-local AsPathType = gt.build(gt.union(
-	gt.string(),
-	PathType:type(),
-	ComponentsType:type()
-))
-local ContentsType = gt.build(gt.union(
-	gt.string(), gt.buffer()
-))
+local AsPathType = gt.build(gt.union(gt.string(), PathType:type(), ComponentsType:type()))
+local ContentsType = gt.build(gt.union(gt.string(), gt.buffer()))
 local booleanType = gt.build(gt.boolean())
 local stringType = gt.build(gt.string())
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))

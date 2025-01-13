@@ -14,10 +14,7 @@ local DirectoryTableType = gt.build(gt.table({
 	path = PathType:type(),
 }))
 
-export type Directory = typeof(setmetatable(
-	{} :: typeof(DirectoryTableType:type()),
-	{} :: DirectoryImpl
-))
+export type Directory = typeof(setmetatable({} :: typeof(DirectoryTableType:type()), {} :: DirectoryImpl))
 
 type DirectoryImpl = {
 	__index: DirectoryImpl,
@@ -38,7 +35,7 @@ function Directory.new(dirPath)
 	AsPathType:assert(dirPath)
 
 	return setmetatable({
-		path = Path.from(dirPath)
+		path = Path.from(dirPath),
 	}, Directory)
 end
 

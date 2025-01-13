@@ -33,11 +33,11 @@ pathfs.Directory = Directory
 pathfs.File = File
 pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
 pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any).__index :: Component & {
-    normal: (value: string) -> Component,
-    rootDir: () -> Component,
-    curDir: () -> Component,
-    parentDir: () -> Component,
-    prefix: (raw: string, prefix: any) -> Component,
+	normal: (value: string) -> Component,
+	rootDir: () -> Component,
+	curDir: () -> Component,
+	parentDir: () -> Component,
+	prefix: (raw: string, prefix: any) -> Component,
 }
 pathfs.normalizePath = normalizePath
 pathfs.cwd = cwd
@@ -123,12 +123,8 @@ function pathfs.withoutCurDir(path: typeof(AsPathType:type())): typeof(PathType:
 	return path
 end
 
-local optionalPathType = gt.build(
-	gt.opt(PathType:type())
-)
-local optionalStringType = gt.build(
-	gt.opt(gt.string())
-)
+local optionalPathType = gt.build(gt.opt(PathType:type()))
+local optionalStringType = gt.build(gt.opt(gt.string()))
 --[=[
 	Construct a relative path from a provided base directory path to the provided path.
 
