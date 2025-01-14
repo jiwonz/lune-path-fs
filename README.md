@@ -1,7 +1,7 @@
 # lune-path-fs
 luau-path + @lune/fs
 
-## v0.3.0 (includes some breaking changes)
+## v0.3.1
 ### Added
 - Added `Directory` utility class.
 #### example:
@@ -41,7 +41,6 @@ local fs = pathfs.fs
 
 fs.writeFile("path")
 ```
-- Removed `pathfs.gt`.
 
 ### etc
 - Better function types and greentea runtime type checker rework.

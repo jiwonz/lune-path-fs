@@ -42,6 +42,9 @@ pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any)
 pathfs.normalizePath = normalizePath
 pathfs.cwd = cwd
 pathfs.Path = Path
+pathfs.gt = {}
+pathfs.gt.Path = PathType
+pathfs.gt.AsPath = AsPathType
 -- selene: allow(global_usage)
 _G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
