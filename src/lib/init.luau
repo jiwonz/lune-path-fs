@@ -42,9 +42,9 @@ pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any)
 pathfs.normalizePath = normalizePath
 pathfs.cwd = cwd
 pathfs.Path = Path
-pathfs.gt = {}
-pathfs.gt.Path = PathType
-pathfs.gt.AsPath = AsPathType
+pathfs.types = {}
+pathfs.types.Path = PathType
+pathfs.types.AsPath = AsPathType
 -- selene: allow(global_usage)
 _G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
@@ -263,6 +263,48 @@ function pathfs.getDir(relative: typeof(optionalBooleanType:type())): typeof(Pat
 		return parent
 	end
 	error("Failed to get dir path. parent does not exist in the script path")
+end
+
+--[=[
+	Finds a file at the given file path.
+	@param filePath The path to the file, of type AsPathType.
+	@return A File object if the file exists, otherwise nil.
+]=]
+function pathfs.findFile(filePath: typeof(AsPathType:type())): File?
+	AsPathType:assert(filePath)
+
+	-- selene: allow(shadowing)
+	local dirPath = createPath(filePath)
+	if fs.isFile(dirPath) then
+		local file = File.fromExisting(dirPath)
+
+		File.type:assert(file)
+
+		return file
+	end
+
+	return
+end
+
+--[=[
+	Finds a directory at the given directory path.
+	@param dirPath The path to the directory, of type AsPathType.
+	@return A Directory object if the directory exists, otherwise nil.
+]=]
+function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
+	AsPathType:assert(dirPath)
+
+	-- selene: allow(shadowing)
+	local dirPath = createPath(dirPath)
+	if fs.isDir(dirPath) then
+		local dir = Directory.fromExisting(dirPath)
+
+		Directory.type:assert(dir)
+
+		return dir
+	end
+
+	return
 end
 
 return pathfs

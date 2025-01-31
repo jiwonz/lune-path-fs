@@ -18,6 +18,7 @@ local FileTableType = gt.build(gt.table({
 export type File = typeof(setmetatable({} :: typeof(FileTableType:type()), {} :: FileImpl))
 
 type FileImpl = {
+	type: typeof(gt.build(gt.any() :: File)),
 	__index: FileImpl,
 	new: (filePath: typeof(AsPathType:type())) -> File,
 	fromExisting: (filePath: typeof(AsPathType:type())) -> File,
@@ -87,10 +88,10 @@ function File.is(value)
 	return false
 end
 
-local FileType = gt.build(gt.custom(File.is, "File") :: File)
+File.type = gt.build(gt.custom(File.is, "File") :: File)
 
 function File.isFile(self)
-	FileType:assert(self)
+	File.type:assert(self)
 
 	local isFile = fs.isFile(self.path)
 
@@ -100,7 +101,7 @@ function File.isFile(self)
 end
 
 function File.readFile(self)
-	FileType:assert(self)
+	File.type:assert(self)
 
 	local contents = fs.readFile(self.path)
 
@@ -110,14 +111,14 @@ function File.readFile(self)
 end
 
 function File.writeFile(self, contents)
-	FileType:assert(self)
+	File.type:assert(self)
 	ContentsType:assert(contents)
 
 	return fs.writeFile(self.path, contents)
 end
 
 function File.removeFile(self)
-	FileType:assert(self)
+	File.type:assert(self)
 
 	return fs.removeFile(self.path)
 end
