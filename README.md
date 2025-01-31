@@ -4,7 +4,7 @@ luau-path + @lune/fs
 ## v0.4.0
 ### Added
 - Add following new pathfs utilities: `pathfs.findFile(filePath: AsPath) -> File?`, `pathfs.findDirectory(dirPath: AsPath) -> Directory?`
-- Expose `File.type` and `Directory.type` greentype types.
+- Expose `File.type` and `Directory.type` greentea types.
 
 ### Changed
 - Rename `pathfs.gt` to `pathfs.types`.
