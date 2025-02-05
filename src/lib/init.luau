@@ -230,7 +230,7 @@ function pathfs.fromDir(
 
 	-- selene: allow(shadowing)
 	local path = createPath(path)
-	local currentScriptPath = pathfs.getScriptPath(3)
+	local currentScriptPath = pathfs.script(3)
 	local resolved = if relative == true then currentScriptPath else pathfs.canonicalize(currentScriptPath)
 	local parent = resolved:parent()
 	if parent then
@@ -254,7 +254,7 @@ end
 function pathfs.getDir(relative: typeof(optionalBooleanType:type())): typeof(PathType:type())
 	optionalBooleanType:assert(relative)
 
-	local currentScriptPath = pathfs.getScriptPath(3)
+	local currentScriptPath = pathfs.script(3)
 	local resolved = if relative == true then currentScriptPath else pathfs.canonicalize(currentScriptPath)
 	local parent = resolved:parent()
 	if parent then
