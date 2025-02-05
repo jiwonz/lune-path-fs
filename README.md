@@ -1,13 +1,10 @@
 # lune-path-fs
 luau-path + @lune/fs
 
-## v0.4.0
-### Added
-- Add following new pathfs utilities: `pathfs.findFile(filePath: AsPath) -> File?`, `pathfs.findDirectory(dirPath: AsPath) -> Directory?`
-- Expose `File.type` and `Directory.type` greentea types.
-
+## v0.5.0
 ### Changed
-- Rename `pathfs.gt` to `pathfs.types`.
+- Rename `pathfs.getScriptPath` to `pathfs.script`.
+- Include missing license file in package.
 
 ## Note
 This library is based on [luau-path](https://github.com/seaofvoices/luau-path) by seaofvoices

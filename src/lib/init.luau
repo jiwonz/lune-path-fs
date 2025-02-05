@@ -62,7 +62,7 @@ local optionalNumberType = gt.build(gt.opt(gt.number()))
 
 	* script path found in `debug.info(level)` is not resolvable.
 ]=]
-function pathfs.getScriptPath(level: typeof(optionalNumberType:type())): typeof(PathType:type())
+function pathfs.script(level: typeof(optionalNumberType:type())): typeof(PathType:type())
 	optionalNumberType:assert(level)
 
 	local path = string.match(debug.info(level or 2, "s"), '%[string "([^"]*)"%]')
