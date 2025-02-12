@@ -1,5 +1,5 @@
 # lune-path-fs
-luau-path + @lune/fs
+luau-path + @lune/fs and some utilities
 
 ## v0.5.0
 ### Changed
