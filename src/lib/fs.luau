@@ -29,9 +29,9 @@ local overwriteOrOptionsType = gt.build(gt.any({ allowNil = true }) :: (luneFile
 	* The current process lacks permissions to read at `from` or write at `to`.
 	* Some other I/O error occurred.
 
-	@param from The path to copy from
-	@param to The path to copy to
-	@param overwriteOrOptions Options for the target path, such as if should be overwritten if it already exists
+	@param from -- The path to copy from
+	@param to -- The path to copy to
+	@param overwriteOrOptions -- Options for the target path, such as if should be overwritten if it already exists
 ]=]
 function fs.copy(
 	from: typeof(AsPathType:type()),
@@ -56,8 +56,8 @@ end
 	* The current process lacks permissions to read at `path`.
 	* Some other I/O error occurred.
 
-	@param path The directory path to check
-	@return If the path is a directory or not
+	@param path -- The directory path to check
+	@return boolean -- If the path is a directory or not
 ]=]
 function fs.isDir(dirPath: typeof(AsPathType:type())): typeof(booleanType:type())
 	AsPathType:assert(dirPath)
@@ -80,8 +80,8 @@ end
 	* The current process lacks permissions to read at `path`.
 	* Some other I/O error occurred.
 
-	@param path The file path to check
-	@return If the path is a file or not
+	@param path -- The file path to check
+	@return boolean -- If the path is a file or not
 ]=]
 function fs.isFile(filePath: typeof(AsPathType:type())): typeof(booleanType:type())
 	AsPathType:assert(filePath)
@@ -104,8 +104,8 @@ end
 	* The current process lacks permissions to read at `path`.
 	* Some other I/O error occurred.
 
-	@param path The path to get metadata for
-	@return Metadata for the path
+	@param path -- The path to get metadata for
+	@return Metadata -- Metadata for the path
 ]=]
 function fs.metadata(path: typeof(AsPathType:type())): luneFileSystem.Metadata
 	AsPathType:assert(path)
@@ -128,9 +128,9 @@ end
 	* The new path exists on a different mount point.
 	* Some other I/O error occurred.
 
-	@param from The path to move from
-	@param to The path to move to
-	@param overwriteOrOptions Options for the target path, such as if should be overwritten if it already exists
+	@param from -- The path to move from
+	@param to -- The path to move to
+	@param overwriteOrOptions -- Options for the target path, such as if should be overwritten if it already exists
 ]=]
 function fs.move(
 	from: typeof(AsPathType:type()),
@@ -156,8 +156,8 @@ end
 	* The current process lacks permissions to read the contents of the directory.
 	* Some other I/O error occurred.
 
-	@param path The directory path to search in
-	@return A list of files & directories found
+	@param path -- The directory path to search in
+	@return {Path} -- A list of files & directories found
 ]=]
 function fs.readDir(dirPath: typeof(AsPathType:type())): typeof(arrayOfPathType:type())
 	AsPathType:assert(dirPath)
@@ -184,8 +184,8 @@ end
 	* The current process lacks permissions to read the file.
 	* Some other I/O error occurred.
 
-	@param path The path to the file to read
-	@return The contents of the file
+	@param path -- The path to the file to read
+	@return string -- The contents of the file
 ]=]
 function fs.readFile(filePath: typeof(AsPathType:type())): typeof(stringType:type())
 	AsPathType:assert(filePath)
@@ -208,7 +208,7 @@ end
 	* The current process lacks permissions to remove the directory.
 	* Some other I/O error occurred.
 
-	@param path The directory to remove
+	@param path -- The directory to remove
 ]=]
 function fs.removeDir(path: typeof(AsPathType:type()))
 	AsPathType:assert(path)
@@ -227,7 +227,7 @@ end
 	* The current process lacks permissions to remove the file.
 	* Some other I/O error occurred.
 
-	@param path The file to remove
+	@param path -- The file to remove
 ]=]
 function fs.removeFile(path: typeof(AsPathType:type()))
 	AsPathType:assert(path)
@@ -246,8 +246,8 @@ end
 	* The current process lacks permissions to write to the file.
 	* Some other I/O error occurred.
 
-	@param path The path of the file
-	@param contents The contents of the file
+	@param path -- The path of the file
+	@param contents -- The contents of the file
 ]=]
 function fs.writeFile(path: typeof(AsPathType:type()), contents: typeof(ContentsType:type()))
 	AsPathType:assert(path)
@@ -267,7 +267,7 @@ end
 	* The current process lacks permissions to create the directory or its missing parents.
 	* Some other I/O error occurred.
 
-	@param path The directory to create
+	@param path -- The directory to create
 ]=]
 function fs.writeDir(path: typeof(AsPathType:type()))
 	AsPathType:assert(path)

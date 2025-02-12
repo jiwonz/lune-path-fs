@@ -14,6 +14,9 @@ local cwd = vfs.cwd
 local Directory = require("./Directory")
 local luneFileSystem = require("@lune/fs")
 local File = require("./File")
+local task = require("@lune/task")
+local getFilesUnderDirectory = require("./getFilesUnderDirectory")
+local asPathToString = vfs.asPathToString
 
 export type Directory = Directory.Directory
 export type File = File.File
@@ -29,12 +32,72 @@ local PathType = types.PathType
 local AsPathType = types.AsPathType
 local optionalBooleanType = types.optionalBooleanType
 
+--[=[
+	@class pathfs
+
+	luau-path + @lune/fs and some utilities
+]=]
 local pathfs = {}
 
+--[=[
+	@within pathfs
+
+	`require("@lune/fs")` compat module
+
+	### Example
+	```lua
+	local fs = require("path/to/pathfs").fs
+
+	fs.readFile("path/to/file")
+	fs.writeFile("path/to/file", "content")
+	...
+	```
+]=]
 pathfs.fs = fs
+--[=[
+	@within pathfs
+
+	A `Directory` class
+
+	### Example
+	```lua
+	local dir = Directory.from("path/to/dir")
+	dir:removeDir()
+	```
+]=]
 pathfs.Directory = Directory
+--[=[
+	@within pathfs
+
+	A `File` class
+
+	### Example
+	```lua
+	local file = File.from("path/to/file")
+	file:writeFile("content")
+	```
+]=]
 pathfs.File = File
+--[=[
+	@within pathfs
+
+	Current path separator
+
+	### Example
+	```lua
+	if process.os == "windows" then
+		print(pathfs.pathSeparator) -- "\\" (Windows)
+	else
+		print(pathfs.pathSeparator) -- "/" (other OS, maybe Linux)
+	end
+	```
+]=]
 pathfs.pathSeparator = pathSeparator
+--[=[
+	@within pathfs
+
+	A `Component` class exported from `luau-path`
+]=]
 pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any).__index :: Component & {
 	normal: (value: string) -> Component,
 	rootDir: () -> Component,
@@ -42,8 +105,18 @@ pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any)
 	parentDir: () -> Component,
 	prefix: (raw: string, prefix: any) -> Component,
 }
-pathfs.normalizePath = normalizePath
+pathfs.normalize = normalizePath
 pathfs.cwd = cwd
+--[=[
+	@within pathfs
+
+	A `Path` class exported from `luau-path`
+
+	### Example
+	```lua
+	local path = Path.from("path/to/file")
+	```
+]=]
 pathfs.Path = Path
 pathfs.types = {}
 pathfs.types.Path = PathType
@@ -57,6 +130,8 @@ end
 
 local optionalNumberType = gt.build(gt.opt(gt.number()))
 --[=[
+	@within pathfs
+
 	Gets current script context's path. (default level is `2`)
 
 	An error will be thrown in the following situations:
@@ -89,6 +164,8 @@ function pathfs.script(level: typeof(optionalNumberType:type())): typeof(PathTyp
 end
 
 --[=[
+	@within pathfs
+
 	Gets absolute path of given path just by joining the `pathfs.cwd` and the path.
 ]=]
 function pathfs.absolute(path: typeof(AsPathType:type())): typeof(PathType:type())
@@ -109,6 +186,8 @@ function pathfs.absolute(path: typeof(AsPathType:type())): typeof(PathType:type(
 end
 
 --[=[
+	@within pathfs
+
 	Gets a path without the current directory component.
 ]=]
 function pathfs.withoutCurDir(path: typeof(AsPathType:type())): typeof(PathType:type())
@@ -130,6 +209,8 @@ end
 local optionalPathType = gt.build(gt.opt(PathType:type()))
 local optionalStringType = gt.build(gt.opt(gt.string()))
 --[=[
+	@within pathfs
+
 	Construct a relative path from a provided base directory path to the provided path.
 
 	Implementation inspired by https://github.com/Manishearth/pathdiff
@@ -197,6 +278,8 @@ function pathfs.diff(
 end
 
 --[=[
+	@within pathfs
+
 	Returns the canonical, absolute form of a path with all intermediate components normalized and symbolic links resolved.
 ]=]
 function pathfs.canonicalize(path: typeof(AsPathType:type())): typeof(PathType:type())
@@ -215,6 +298,8 @@ function pathfs.canonicalize(path: typeof(AsPathType:type())): typeof(PathType:t
 end
 
 --[=[
+	@within pathfs
+
 	Creates a new `Path` based on the current dir path.
 
 	An error will be thrown in the following situations:
@@ -245,6 +330,8 @@ function pathfs.fromDir(
 end
 
 --[=[
+	@within pathfs
+
 	Get the dir path based on the current script context.
 
 	An error will be thrown in the following situations:
@@ -267,9 +354,11 @@ function pathfs.getDir(relative: typeof(optionalBooleanType:type())): typeof(Pat
 end
 
 --[=[
+	@within pathfs
+
 	Finds a file at the given file path.
-	@param filePath The path to the file, of type AsPathType.
-	@return A File object if the file exists, otherwise nil.
+	@param filePath -- The path to the file, of type AsPathType.
+	@return File? -- A File object if the file exists, otherwise nil.
 ]=]
 function pathfs.findFile(filePath: typeof(AsPathType:type())): File?
 	AsPathType:assert(filePath)
@@ -288,9 +377,11 @@ function pathfs.findFile(filePath: typeof(AsPathType:type())): File?
 end
 
 --[=[
+	@within pathfs
+
 	Finds a directory at the given directory path.
-	@param dirPath The path to the directory, of type AsPathType.
-	@return A Directory object if the directory exists, otherwise nil.
+	@param dirPath -- The path to the directory, of type AsPathType.
+	@return dir -- A Directory object if the directory exists, otherwise nil.
 ]=]
 function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
 	AsPathType:assert(dirPath)
@@ -306,6 +397,101 @@ function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
 	end
 
 	return
+end
+
+-- original source credits to: https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau
+local function watchPaths(paths: { string }, callback: () -> ())
+	local lastModified = {}
+
+	for _, path in paths do
+		lastModified[path] = fs.metadata(path).modifiedAt
+	end
+
+	while true do
+		local changed = false
+
+		for path, modified in lastModified do
+			local newModified = fs.metadata(path).modifiedAt
+			if newModified ~= modified then
+				lastModified[path] = newModified
+				changed = true
+				break
+			end
+		end
+
+		if changed then
+			task.spawn(callback)
+		end
+
+		task.wait(1)
+	end
+end
+
+local directoriesArrayType = gt.build(gt.array(
+	AsPathType:type()
+))
+local callbackType = gt.build(gt.anyfn())
+--[=[
+	@within pathfs
+
+	Watch directories for changes.
+
+	### Example
+	```lua
+	pathfs.watchDirectories({"path/to/dir1", "path/to/dir2"}, function()
+		print("Changed!")
+	end)
+	```
+]=]
+function pathfs.watchDirectories(directories: typeof(directoriesArrayType:type()), onChanged: typeof(callbackType:type())): thread
+	directoriesArrayType:assert(directories)
+	callbackType:assert(onChanged)
+
+	local paths = {}
+
+	for _, directoryPath in directories do
+		-- selene: allow(shadowing)
+		local directoryPath = asPathToString(directoryPath)
+		for _, filePath in getFilesUnderDirectory(directoryPath) do
+			table.insert(paths, `{directoryPath}/{filePath}`)
+		end
+	end
+
+	task.spawn(onChanged)
+	return task.spawn(watchPaths, paths, onChanged)
+end
+
+--[=[
+	@within pathfs
+
+	Watch a file for changes.
+
+	### Example
+	```lua
+	pathfs.watchFile("path/to/file", function()
+		print("Changed!")
+	end)
+	```
+]=]
+function pathfs.watchFile(fileName: typeof(AsPathType:type()), onChanged: typeof(callbackType:type()))
+	AsPathType:assert(fileName)
+	callbackType:assert(onChanged)
+
+	task.spawn(onChanged)
+	return task.spawn(function()
+		local lastModified = fs.metadata(fileName).modifiedAt
+
+		while true do
+			local newModified = fs.metadata(fileName).modifiedAt
+			if newModified ~= lastModified then
+				task.spawn(onChanged)
+
+				lastModified = newModified
+			end
+
+			task.wait(1)
+		end
+	end)
 end
 
 return pathfs

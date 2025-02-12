@@ -11,7 +11,17 @@ local vfs = {}
 
 local currentDir: Path?
 
-function vfs.normalizePath(path: Path): Path
+--[=[
+	Normalizes the given path.
+
+	### Example
+	```lua
+	local path = vfs.normalizePath("path/to/file")
+	```
+]=]
+function vfs.normalizePath(path: AsPath): Path
+	-- selene: allow(shadowing)
+	local path = Path.from(path)
 	return Path.from(path:components())
 end
 
