@@ -1,7 +1,7 @@
 local frktest = require("@frktest/")
 local test = frktest.test
 local check = frktest.assert.check
-local pathfs = require("..")
+local pathfs = require("../src/lib")
 local fs = pathfs.fs
 
 return function()
