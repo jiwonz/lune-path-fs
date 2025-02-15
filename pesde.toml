@@ -4,7 +4,7 @@ description = "luau-path + @lune/fs"
 authors = ["jeparlefrancais <jeparlefrancais21@gmail.com>", "jiwonz <me@jiwonz.kr>"]
 repository = "https://github.com/jiwonz/lune-path-fs/"
 license = "MIT"
-includes = ["README.md", "pesde.toml", "src/**", "LICENSE.md"]
+includes = ["README.md", "pesde.toml", "src/**", "LICENSE"]
 
 [target]
 environment = "lune"
