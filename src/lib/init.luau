@@ -1,13 +1,16 @@
+local process = require("@lune/process")
+local pathSeparator = process.os == "windows" and "\\" or "/"
+-- selene: allow(global_usage)
+_G.SYS_PATH_SEPARATOR = pathSeparator
+local luauPath = require("../../luau_packages/luau_path")
+local Path = luauPath.Path
 local fs = require("./fs")
 local gt = require("../../lune_packages/greentea")
 local types = require("./types")
-local luauPath = require("../../luau_packages/luau_path")
-local Path = luauPath.Path
 local vfs = require("./vfs")
 local createPath = vfs.createPath
 local normalizePath = vfs.normalizePath
 local cwd = vfs.cwd
-local process = require("@lune/process")
 local Directory = require("./Directory")
 local luneFileSystem = require("@lune/fs")
 local File = require("./File")
@@ -31,7 +34,7 @@ local pathfs = {}
 pathfs.fs = fs
 pathfs.Directory = Directory
 pathfs.File = File
-pathfs.pathSeparator = process.os == "windows" and "\\" or "/"
+pathfs.pathSeparator = pathSeparator
 pathfs.Component = getmetatable(Path.from("a"):components():collect()[1] :: any).__index :: Component & {
 	normal: (value: string) -> Component,
 	rootDir: () -> Component,
@@ -45,8 +48,6 @@ pathfs.Path = Path
 pathfs.gt = {}
 pathfs.gt.Path = PathType
 pathfs.gt.AsPath = AsPathType
--- selene: allow(global_usage)
-_G.SYS_PATH_SEPARATOR = pathfs.pathSeparator
 
 local function extendTable<K, V>(target: { V }, tbl: { [K]: V })
 	for _, v in tbl do
