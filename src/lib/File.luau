@@ -64,7 +64,7 @@ function File.create(filePath, initialContents, overwrite)
 
 	if fs.isFile(filePath) then
 		if overwrite then
-			fs.removeDir(filePath)
+			fs.removeFile(filePath)
 		else
 			error(`Cannot create a new file. A file already exists at that path({filePath})`)
 		end
