@@ -427,9 +427,7 @@ local function watchPaths(paths: { string }, callback: () -> ())
 	end
 end
 
-local directoriesArrayType = gt.build(gt.array(
-	AsPathType:type()
-))
+local directoriesArrayType = gt.build(gt.array(AsPathType:type()))
 local callbackType = gt.build(gt.anyfn())
 --[=[
 	@within pathfs
@@ -443,7 +441,10 @@ local callbackType = gt.build(gt.anyfn())
 	end)
 	```
 ]=]
-function pathfs.watchDirectories(directories: typeof(directoriesArrayType:type()), onChanged: typeof(callbackType:type())): thread
+function pathfs.watchDirectories(
+	directories: typeof(directoriesArrayType:type()),
+	onChanged: typeof(callbackType:type())
+): thread
 	directoriesArrayType:assert(directories)
 	callbackType:assert(onChanged)
 
