@@ -7,7 +7,7 @@ local types = require("./types")
 local PathType = types.PathType
 local AsPathType = types.AsPathType
 local optionalBooleanType = types.optionalBooleanType
-local arrayOfPathType = types.arrayOfPathType
+local arrayOfStringType = types.arrayOfStringType
 local booleanType = types.booleanType
 
 local DirectoryTableType = gt.build(gt.table({
@@ -24,7 +24,7 @@ type DirectoryImpl = {
 	create: (dirPath: typeof(AsPathType:type()), overwrite: typeof(optionalBooleanType:type())) -> Directory,
 	is: (value: any) -> boolean,
 	isDir: (self: Directory) -> typeof(booleanType:type()),
-	readDir: (self: Directory) -> typeof(arrayOfPathType:type()),
+	readDir: (self: Directory) -> typeof(arrayOfStringType:type()),
 	writeDir: (self: Directory) -> (),
 	removeDir: (self: Directory) -> (),
 }

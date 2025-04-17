@@ -15,7 +15,7 @@ local ContentsType = gt.build(gt.union(gt.string(), gt.buffer()))
 local booleanType = gt.build(gt.boolean())
 local stringType = gt.build(gt.string())
 local optionalBooleanType = gt.build(gt.opt(gt.boolean()))
-local arrayOfPathType = gt.build(gt.array(PathType:type()))
+local arrayOfStringType = gt.build(gt.array(gt.string()))
 
 export type Component = typeof(Path.new():components():collect()[1])
 
@@ -30,5 +30,5 @@ return {
 	booleanType = booleanType,
 	stringType = stringType,
 	optionalBooleanType = optionalBooleanType,
-	arrayOfPathType = arrayOfPathType,
+	arrayOfStringType = arrayOfStringType,
 }

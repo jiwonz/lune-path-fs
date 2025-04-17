@@ -15,8 +15,6 @@ local Directory = require("./Directory")
 local luneFileSystem = require("@lune/fs")
 local File = require("./File")
 local task = require("@lune/task")
-local getFilesUnderDirectory = require("./getFilesUnderDirectory")
-local asPathToString = vfs.asPathToString
 
 export type Directory = Directory.Directory
 export type File = File.File
@@ -399,6 +397,111 @@ function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
 	return
 end
 
+local directoryType = gt.build(gt.union(
+	Directory.type:type(),
+	AsPathType:type()
+))
+
+type DirEntry = {
+	name: string,
+	file: File?,
+	directory: Directory?,
+}
+
+local function directoryToPath(dir: typeof(directoryType:type())): typeof(PathType:type())
+	local path: typeof(PathType:type()) = if Directory.is(dir) then
+		(dir :: Directory).path
+	else
+		createPath(dir :: typeof(AsPathType:type()))
+
+	if not fs.isDir(path) then
+		error("The provided path is not a valid directory")
+	end
+
+	return path
+end
+
+--[=[
+	@within pathfs
+
+	Get the entries of a directory.
+
+	### Example
+	```lua
+	for _, entry in pathfs.getEntries("path/to/dir") do
+		print(entry.name) -- File name of this directory entry without any leading path component(s)
+		print(entry.file) -- File object if it exists
+		print(entry.directory) -- Directory object if it exists
+	end
+	```
+
+	@param dir -- The directory to get entries from, of type Directory or AsPathType.
+	@return entries -- A table containing the entries in the directory.
+]=]
+function pathfs.getEntries(directory: typeof(directoryType:type())): { DirEntry }
+	directoryType:assert(directory)
+
+	-- selene: allow(shadowing)
+	local directory = directoryToPath(directory)
+	local entries: { DirEntry } = {}
+
+	for _, entryName in fs.readDir(directory) do
+		local fullPath = directory:join(entryName)
+		table.insert(entries, {
+			name = entryName,
+			file = pathfs.findFile(fullPath),
+			directory = pathfs.findDirectory(fullPath),
+		})
+	end
+
+	return entries
+end
+
+--[=[
+	@within pathfs
+
+	Get the entries of a directory.
+
+	### Example
+	```lua
+	for _, entry in pathfs.getDescendantEntries("path/to/dir") do
+		print(entry.name) -- File name of this directory entry without any leading path component(s)
+		print(entry.file) -- File object if it exists
+		print(entry.directory) -- Directory object if it exists
+	end
+	```
+
+	@param dir -- The directory to get entries from, of type Directory or AsPathType.
+	@return entries -- A table containing the entries in the directory.
+]=]
+function pathfs.getDescendantEntries(directory: typeof(directoryType:type())): { DirEntry }
+	directoryType:assert(directory)
+
+	-- selene: allow(shadowing)
+	local directory = directoryToPath(directory)
+	local entries: { DirEntry } = {}
+
+	for _, entryName in fs.readDir(directory) do
+		local fullPath = directory:join(entryName)
+
+		table.insert(entries, {
+			name = entryName,
+			file = pathfs.findFile(fullPath),
+			directory = pathfs.findDirectory(fullPath),
+		})
+
+		if fs.isDir(fullPath) then
+			local deepEntries = pathfs.getDescendantEntries(fullPath)
+
+			for _, deepEntry in next, deepEntries do
+				table.insert(entries, deepEntry)
+			end
+		end
+	end
+
+	return entries
+end
+
 -- original source credits to: https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau
 local function watchPaths(paths: { string }, callback: () -> ())
 	local lastModified = {}
@@ -427,7 +530,7 @@ local function watchPaths(paths: { string }, callback: () -> ())
 	end
 end
 
-local directoriesArrayType = gt.build(gt.array(AsPathType:type()))
+local directoriesArrayType = gt.build(gt.array(directoryType:type()))
 local callbackType = gt.build(gt.anyfn())
 --[=[
 	@within pathfs
@@ -450,11 +553,13 @@ function pathfs.watchDirectories(
 
 	local paths = {}
 
-	for _, directoryPath in directories do
+	for _, dir in next, directories do
 		-- selene: allow(shadowing)
-		local directoryPath = asPathToString(directoryPath)
-		for _, filePath in getFilesUnderDirectory(directoryPath) do
-			table.insert(paths, `{directoryPath}/{filePath}`)
+		local dir = directoryToPath(dir)
+		for _, filePath in pathfs.getDescendantEntries(dir) do
+			if filePath.directory then
+				table.insert(paths, filePath.directory.path:toString())
+			end
 		end
 	end
 
@@ -474,7 +579,7 @@ end
 	end)
 	```
 ]=]
-function pathfs.watchFile(fileName: typeof(AsPathType:type()), onChanged: typeof(callbackType:type()))
+function pathfs.watchFile(fileName: typeof(AsPathType:type()), onChanged: typeof(callbackType:type())): thread
 	AsPathType:assert(fileName)
 	callbackType:assert(onChanged)
 
@@ -489,6 +594,186 @@ function pathfs.watchFile(fileName: typeof(AsPathType:type()), onChanged: typeof
 
 				lastModified = newModified
 			end
+
+			task.wait(1)
+		end
+	end)
+end
+
+--[=[
+	@within pathfs
+
+	Watch a directory for added entries.
+
+	### Example
+	```lua
+	pathfs.watchEntryAdded("path/to/dir", function(addedEntry)
+		print("Added entry:", addedEntry.name)
+	end)
+	```
+
+	@param directory -- The directory to watch, of type Directory or AsPathType.
+	@param onAdded -- The callback function to call when an entry is added.
+]=]
+function pathfs.watchEntryAdded(directory: typeof(directoryType:type()), onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())): thread
+	directoryType:assert(directory)
+	callbackType:assert(onAdded)
+
+	local oldEntries = pathfs.getEntries(directory)
+
+	return task.spawn(function()
+		while true do
+			local newEntries = pathfs.getEntries(directory)
+			for _, newEntry in next, newEntries do
+				local found = false
+				for _, oldEntry in oldEntries do
+					if newEntry.name == oldEntry.name then
+						found = true
+						break
+					end
+				end
+
+				if not found then
+					onAdded(newEntry)
+				end
+			end
+
+			oldEntries = newEntries
+
+			task.wait(1)
+		end
+	end)
+end
+
+--[=[
+	@within pathfs
+
+	Watch a directory for removed entries.
+
+	### Example
+	```lua
+	pathfs.watchEntryRemoved("path/to/dir", function(removedEntry)
+		print("Removed entry:", removedEntry.name)
+	end)
+	```
+
+	@param directory -- The directory to watch, of type Directory or AsPathType.
+	@param onRemoved -- The callback function to call when an entry is removed.
+]=]
+function pathfs.watchEntryRemoved(directory: typeof(directoryType:type()), onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())): thread
+	directoryType:assert(directory)
+	callbackType:assert(onRemoved)
+
+	local oldEntries = pathfs.getEntries(directory)
+
+	return task.spawn(function()
+		while true do
+			local newEntries = pathfs.getEntries(directory)
+			for _, oldEntry in next, oldEntries do
+				local found = false
+				for _, newEntry in newEntries do
+					if oldEntry.name == newEntry.name then
+						found = true
+						break
+					end
+				end
+
+				if not found then
+					onRemoved(oldEntry)
+				end
+			end
+
+			oldEntries = newEntries
+
+			task.wait(1)
+		end
+	end)
+end
+
+--[=[
+	@within pathfs
+
+	Watch a directory for added entries.
+
+	### Example
+	```lua
+	pathfs.watchDescendantEntryAdded("path/to/dir", function(addedEntry)
+		print("Added entry:", addedEntry.name)
+	end)
+	```
+
+	@param directory -- The directory to watch, of type Directory or AsPathType.
+	@param onAdded -- The callback function to call when an entry is added.
+]=]
+function pathfs.watchDescendantEntryAdded(directory: typeof(directoryType:type()), onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())): thread
+	directoryType:assert(directory)
+	callbackType:assert(onAdded)
+
+	local oldEntries = pathfs.getDescendantEntries(directory)
+
+	return task.spawn(function()
+		while true do
+			local newEntries = pathfs.getDescendantEntries(directory)
+			for _, newEntry in next, newEntries do
+				local found = false
+				for _, oldEntry in oldEntries do
+					if newEntry.name == oldEntry.name then
+						found = true
+						break
+					end
+				end
+
+				if not found then
+					onAdded(newEntry)
+				end
+			end
+
+			oldEntries = newEntries
+
+			task.wait(1)
+		end
+	end)
+end
+
+--[=[
+	@within pathfs
+
+	Watch a directory for removed entries.
+
+	### Example
+	```lua
+	pathfs.watchDescendantEntryRemoved("path/to/dir", function(removedEntry)
+		print("Removed entry:", removedEntry.name)
+	end)
+	```
+
+	@param directory -- The directory to watch, of type Directory or AsPathType.
+	@param onRemoved -- The callback function to call when an entry is removed.
+]=]
+function pathfs.watchDescendantEntryRemoved(directory: typeof(directoryType:type()), onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())): thread
+	directoryType:assert(directory)
+	callbackType:assert(onRemoved)
+
+	local oldEntries = pathfs.getDescendantEntries(directory)
+
+	return task.spawn(function()
+		while true do
+			local newEntries = pathfs.getDescendantEntries(directory)
+			for _, oldEntry in next, oldEntries do
+				local found = false
+				for _, newEntry in newEntries do
+					if oldEntry.name == newEntry.name then
+						found = true
+						break
+					end
+				end
+
+				if not found then
+					onRemoved(oldEntry)
+				end
+			end
+
+			oldEntries = newEntries
 
 			task.wait(1)
 		end
