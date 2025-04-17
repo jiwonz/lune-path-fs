@@ -10,7 +10,7 @@ local AsPathType = types.AsPathType
 local booleanType = types.booleanType
 local stringType = types.stringType
 local ContentsType = types.ContentsType
-local arrayOfPathType = types.arrayOfPathType
+local arrayOfStringType = types.arrayOfStringType
 
 local fs = {}
 
@@ -159,15 +159,15 @@ end
 	@param path -- The directory path to search in
 	@return {Path} -- A list of files & directories found
 ]=]
-function fs.readDir(dirPath: typeof(AsPathType:type())): typeof(arrayOfPathType:type())
+function fs.readDir(dirPath: typeof(AsPathType:type())): typeof(arrayOfStringType:type())
 	AsPathType:assert(dirPath)
 
-	local dirs = luneFileSystem.readDir(asPathToString(dirPath)) :: { any }
+	local dirs = luneFileSystem.readDir(asPathToString(dirPath))
 	for i, v in dirs do
-		dirs[i] = Path.from(v)
+		dirs[i] = v
 	end
 
-	arrayOfPathType:assert(dirs)
+	arrayOfStringType:assert(dirs)
 
 	return dirs
 end
