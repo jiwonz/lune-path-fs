@@ -87,8 +87,8 @@ function File.is(value)
 	return false
 end
 
-local FileType = gt.build(gt.custom(File.is, "File") :: File)
-;(File :: any).type = FileType
+local FileType = gt.build(gt.custom(File.is, "File") :: File);
+(File :: any).type = FileType
 
 function File.isFile(self)
 	FileType:assert(self)

@@ -81,8 +81,8 @@ function Directory.is(value)
 	return false
 end
 
-local DirectoryType = gt.build(gt.custom(Directory.is, "Directory") :: Directory)
-;(Directory :: any).type =DirectoryType
+local DirectoryType = gt.build(gt.custom(Directory.is, "Directory") :: Directory);
+(Directory :: any).type = DirectoryType
 
 function Directory.isDir(self)
 	DirectoryType:assert(self)

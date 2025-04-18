@@ -397,10 +397,7 @@ function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
 	return
 end
 
-local directoryType = gt.build(gt.union(
-	Directory.type:type(),
-	AsPathType:type()
-))
+local directoryType = gt.build(gt.union(Directory.type:type(), AsPathType:type()))
 
 type DirEntry = {
 	name: string,
@@ -409,10 +406,9 @@ type DirEntry = {
 }
 
 local function directoryToPath(dir: typeof(directoryType:type())): typeof(PathType:type())
-	local path: typeof(PathType:type()) = if Directory.is(dir) then
-		(dir :: Directory).path
-	else
-		createPath(dir :: typeof(AsPathType:type()))
+	local path: typeof(PathType:type()) = if Directory.is(dir)
+		then (dir :: Directory).path
+		else createPath(dir :: typeof(AsPathType:type()))
 
 	if not fs.isDir(path) then
 		error("The provided path is not a valid directory")
@@ -615,7 +611,10 @@ end
 	@param directory -- The directory to watch, of type Directory or AsPathType.
 	@param onAdded -- The callback function to call when an entry is added.
 ]=]
-function pathfs.watchEntryAdded(directory: typeof(directoryType:type()), onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())): thread
+function pathfs.watchEntryAdded(
+	directory: typeof(directoryType:type()),
+	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
+): thread
 	directoryType:assert(directory)
 	callbackType:assert(onAdded)
 
@@ -660,7 +659,10 @@ end
 	@param directory -- The directory to watch, of type Directory or AsPathType.
 	@param onRemoved -- The callback function to call when an entry is removed.
 ]=]
-function pathfs.watchEntryRemoved(directory: typeof(directoryType:type()), onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())): thread
+function pathfs.watchEntryRemoved(
+	directory: typeof(directoryType:type()),
+	onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())
+): thread
 	directoryType:assert(directory)
 	callbackType:assert(onRemoved)
 
@@ -705,7 +707,10 @@ end
 	@param directory -- The directory to watch, of type Directory or AsPathType.
 	@param onAdded -- The callback function to call when an entry is added.
 ]=]
-function pathfs.watchDescendantEntryAdded(directory: typeof(directoryType:type()), onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())): thread
+function pathfs.watchDescendantEntryAdded(
+	directory: typeof(directoryType:type()),
+	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
+): thread
 	directoryType:assert(directory)
 	callbackType:assert(onAdded)
 
@@ -750,7 +755,10 @@ end
 	@param directory -- The directory to watch, of type Directory or AsPathType.
 	@param onRemoved -- The callback function to call when an entry is removed.
 ]=]
-function pathfs.watchDescendantEntryRemoved(directory: typeof(directoryType:type()), onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())): thread
+function pathfs.watchDescendantEntryRemoved(
+	directory: typeof(directoryType:type()),
+	onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())
+): thread
 	directoryType:assert(directory)
 	callbackType:assert(onRemoved)
 

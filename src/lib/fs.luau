@@ -1,6 +1,4 @@
 local luneFileSystem = require("@lune/fs")
-local luauPath = require("../../luau_packages/luau_path")
-local Path = luauPath.Path
 local gt = require("../../lune_packages/greentea")
 local vfs = require("./vfs")
 local asPathToString = vfs.asPathToString
