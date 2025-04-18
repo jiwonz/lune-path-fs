@@ -381,7 +381,7 @@ end
 	@param dirPath -- The path to the directory, of type AsPathType.
 	@return dir -- A Directory object if the directory exists, otherwise nil.
 ]=]
-function pathfs.findDirectory(dirPath: typeof(AsPathType:type())): Directory?
+function pathfs.findDir(dirPath: typeof(AsPathType:type())): Directory?
 	AsPathType:assert(dirPath)
 
 	-- selene: allow(shadowing)
@@ -402,7 +402,7 @@ local directoryType = gt.build(gt.union(Directory.type:type(), AsPathType:type()
 type DirEntry = {
 	name: string,
 	file: File?,
-	directory: Directory?,
+	dir: Directory?,
 }
 
 local function directoryToPath(dir: typeof(directoryType:type())): typeof(PathType:type())
@@ -446,7 +446,7 @@ function pathfs.getEntries(directory: typeof(directoryType:type())): { DirEntry 
 		table.insert(entries, {
 			name = entryName,
 			file = pathfs.findFile(fullPath),
-			directory = pathfs.findDirectory(fullPath),
+			directory = pathfs.findDir(fullPath),
 		})
 	end
 
@@ -483,7 +483,7 @@ function pathfs.getDescendantEntries(directory: typeof(directoryType:type())): {
 		table.insert(entries, {
 			name = entryName,
 			file = pathfs.findFile(fullPath),
-			directory = pathfs.findDirectory(fullPath),
+			directory = pathfs.findDir(fullPath),
 		})
 
 		if fs.isDir(fullPath) then
@@ -553,8 +553,8 @@ function pathfs.watchDirectories(
 		-- selene: allow(shadowing)
 		local dir = directoryToPath(dir)
 		for _, filePath in pathfs.getDescendantEntries(dir) do
-			if filePath.directory then
-				table.insert(paths, filePath.directory.path:toString())
+			if filePath.dir then
+				table.insert(paths, filePath.dir.path:toString())
 			end
 		end
 	end
