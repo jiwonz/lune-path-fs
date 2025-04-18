@@ -302,7 +302,7 @@ end
 
 	An error will be thrown in the following situations:
 
-	* Errors while calling `pathfs.getScriptPath()`.
+	* Errors while calling `pathfs.script(3)`.
 	* Current script path's parent path does not exist.
 ]=]
 function pathfs.fromDir(
