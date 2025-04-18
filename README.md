@@ -41,3 +41,5 @@ print(fs.readFile(path))
 
 ## TO-DOs
 - [ ] Generate markdown docs from moonwave comments for pesde docs
+- [ ] Add utils tests
+- [ ] Write CHANGELOG.md instead writing in README.md
