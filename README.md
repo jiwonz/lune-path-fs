@@ -10,9 +10,6 @@ luau-path + @lune/fs and some utilities
 - Add some moonwave docs comments (not finished, docs soon)
 - Add watch utilities (`pathfs.watchFile`, `pathfs.watchDirectories` source credits to [ffrostfall](https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau))
 
-## Note
-This library is based on [luau-path](https://github.com/seaofvoices/luau-path) by seaofvoices
-
 ## Features
 - Includes typed `luau-path` utility (now fully typed)
 - @lune/fs library but supports path objects (`AsPath` objects which include string and `Path` objects)
@@ -66,6 +63,10 @@ pathfs.watchDescendantEntryRemoved("path/to/dir", function()
 end)
 
 ```
+
+## Credits
+- [seaofvoices/luau-path](https://github.com/seaofvoices/luau-path) - The base of this library and cool Path implementation for Luau
+- [ffrostfall/lunePackages](https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau) - watch utilities base implementations
 
 ## TO-DOs
 - [ ] Generate markdown docs from moonwave comments for pesde docs
