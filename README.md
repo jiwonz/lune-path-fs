@@ -1,14 +1,12 @@
-# lune-path-fs
+# lune-pathfs
 luau-path + @lune/fs and some utilities
 
-## v0.6.0-rc.1
+## v0.6.0-rc.3
 ### Changed
-- `pathfs.normalizePath` now accepts `AsPath`.
-- Rename `pathfs.normalizePath` to `pathfs.normalize`.
+- Rename `pathfs.findDirectory` to `pathfs.findDir`
 
 ### Added
-- Add some moonwave docs comments (not finished, docs soon)
-- Add watch utilities (`pathfs.watchFile`, `pathfs.watchDirectories` source credits to [ffrostfall](https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau))
+- Add following utility functions: `pathfs.getEntries`, `pathfs.getDescendantEntries`, `pathfs.watchEntryAdded`, `pathfs.watchEntryRemoved`, `pathfs.watchDescendantEntryAdded`, and `pathfs.watchDescendantEntryRemoved`
 
 ## Features
 - Includes typed `luau-path` utility (now fully typed)
