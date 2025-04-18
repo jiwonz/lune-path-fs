@@ -19,4 +19,7 @@ greentea = { name = "corecii/greentea", version = "^0.4.11" }
 
 [dev_dependencies]
 frktest = { name = "itsfrank/frktest", version = "^0.0.2" }
-luau_check = { name = "jiwonz/luau_check", version = "^0.3.8" }
+luau_check = { name = "jiwonz/luau_check", version = "^0.3.13" }
+luau_lsp = { name = "pesde/luau_lsp", version = "^1.42.1" }
+selene = { name = "pesde/selene", version = "^0.28.0" }
+stylua = { name = "pesde/stylua", version = "^2.0.2" }
