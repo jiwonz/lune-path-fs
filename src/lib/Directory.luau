@@ -17,7 +17,6 @@ local DirectoryTableType = gt.build(gt.table({
 export type Directory = typeof(setmetatable({} :: typeof(DirectoryTableType:type()), {} :: DirectoryImpl))
 
 type DirectoryImpl = {
-	type: typeof(gt.build(gt.any() :: Directory)),
 	__index: DirectoryImpl,
 	new: (dirPath: typeof(AsPathType:type())) -> Directory,
 	fromExisting: (dirPath: typeof(AsPathType:type())) -> Directory,
@@ -82,10 +81,11 @@ function Directory.is(value)
 	return false
 end
 
-Directory.type = gt.build(gt.custom(Directory.is, "Directory") :: Directory)
+local DirectoryType = gt.build(gt.custom(Directory.is, "Directory") :: Directory)
+;(Directory :: any).type =DirectoryType
 
 function Directory.isDir(self)
-	Directory.type:assert(self)
+	DirectoryType:assert(self)
 
 	local isDir = fs.isDir(self.path)
 
@@ -95,21 +95,23 @@ function Directory.isDir(self)
 end
 
 function Directory.readDir(self)
-	Directory.type:assert(self)
+	DirectoryType:assert(self)
 
 	return fs.readDir(self.path)
 end
 
 function Directory.writeDir(self)
-	Directory.type:assert(self)
+	DirectoryType:assert(self)
 
 	return fs.writeDir(self.path)
 end
 
 function Directory.removeDir(self)
-	Directory.type:assert(self)
+	DirectoryType:assert(self)
 
 	return fs.removeDir(self.path)
 end
 
-return Directory
+return Directory :: DirectoryImpl & {
+	type: typeof(gt.build(gt.any() :: Directory)),
+}

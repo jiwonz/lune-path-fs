@@ -493,7 +493,7 @@ function pathfs.getDescendantEntries(directory: typeof(directoryType:type())): {
 		if fs.isDir(fullPath) then
 			local deepEntries = pathfs.getDescendantEntries(fullPath)
 
-			for _, deepEntry: DirEntry in deepEntries :: any do
+			for _, deepEntry: DirEntry in deepEntries do
 				table.insert(entries, deepEntry)
 			end
 		end
@@ -553,7 +553,7 @@ function pathfs.watchDirectories(
 
 	local paths = {}
 
-	for _, dir: Directory in directories :: any do
+	for _, dir in directories do
 		-- selene: allow(shadowing)
 		local dir = directoryToPath(dir)
 		for _, filePath in pathfs.getDescendantEntries(dir) do
@@ -624,7 +624,7 @@ function pathfs.watchEntryAdded(directory: typeof(directoryType:type()), onAdded
 	return task.spawn(function()
 		while true do
 			local newEntries = pathfs.getEntries(directory)
-			for _, newEntry: DirEntry in newEntries :: any do
+			for _, newEntry in newEntries do
 				local found = false
 				for _, oldEntry in oldEntries do
 					if newEntry.name == oldEntry.name then
@@ -669,7 +669,7 @@ function pathfs.watchEntryRemoved(directory: typeof(directoryType:type()), onRem
 	return task.spawn(function()
 		while true do
 			local newEntries = pathfs.getEntries(directory)
-			for _, oldEntry: DirEntry in oldEntries :: any do
+			for _, oldEntry in oldEntries do
 				local found = false
 				for _, newEntry in newEntries do
 					if oldEntry.name == newEntry.name then
@@ -714,7 +714,7 @@ function pathfs.watchDescendantEntryAdded(directory: typeof(directoryType:type()
 	return task.spawn(function()
 		while true do
 			local newEntries = pathfs.getDescendantEntries(directory)
-			for _, newEntry: DirEntry in newEntries :: any do
+			for _, newEntry in newEntries do
 				local found = false
 				for _, oldEntry in oldEntries do
 					if newEntry.name == oldEntry.name then
@@ -759,7 +759,7 @@ function pathfs.watchDescendantEntryRemoved(directory: typeof(directoryType:type
 	return task.spawn(function()
 		while true do
 			local newEntries = pathfs.getDescendantEntries(directory)
-			for _, oldEntry: DirEntry in oldEntries :: any do
+			for _, oldEntry in oldEntries do
 				local found = false
 				for _, newEntry in newEntries do
 					if oldEntry.name == newEntry.name then
