@@ -33,9 +33,37 @@ local fs = pathfs.fs -- compat with lune's fs lib (@lune/fs)
 
 fs.writeFile("something.json", "{ \"message\": \"Hello, world!\" }")
 
-local path = pathfs.Path.from("something.json")
+-- Using Path
+local Path = pathfs.Path
+local path = Path.from("something.json")
 
 print(fs.readFile(path))
+
+-- Some useful utilities
+pathfs.script()
+pathfs.absolute("relative/file/path")
+pathfs.withoutCurDir("./to/remove/curdir/the/dot")
+pathfs.diff("target", "base")
+pathfs.findFile("path/to/file")
+pathfs.findDir()
+pathfs.watchFile("path/to/file", function()
+	print("changed")
+end)
+pathfs.watchDirectories({ "dir1", "dir2" }, function()
+	print("changed")
+end)
+pathfs.watchEntryAdded("path/to/dir", function()
+	print("added")
+end)
+pathfs.watchEntryRemoved("path/to/dir", function()
+	print("removed")
+end)
+pathfs.watchDescendantEntryAdded("path/to/dir", function()
+	print("added")
+end)
+pathfs.watchDescendantEntryRemoved("path/to/dir", function()
+	print("removed")
+end)
 
 ```
 
