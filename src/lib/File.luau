@@ -19,6 +19,7 @@ export type File = typeof(setmetatable({} :: typeof(FileTableType:type()), {} ::
 
 type FileImpl = {
 	__index: FileImpl,
+	__tostring: (self: File) -> string,
 	new: (filePath: typeof(AsPathType:type())) -> File,
 	fromExisting: (filePath: typeof(AsPathType:type())) -> File,
 	create: (
@@ -35,6 +36,12 @@ type FileImpl = {
 
 local File = {} :: FileImpl
 File.__index = File
+
+function File.__tostring(self)
+	FileTableType:assert(self)
+
+	return `File<{self.path}>`
+end
 
 function File.new(filePath)
 	AsPathType:assert(filePath)
