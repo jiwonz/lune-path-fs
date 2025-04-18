@@ -99,26 +99,26 @@ resolved_ty = "standard"
 ref_ty = "pesde"
 index_url = "https://github.com/pesde-pkg/index"
 
-[graph."jiwonz/luau_path@0.1.1 luau"]
-direct = ["luau_path", { name = "jiwonz/luau_path", version = "^0.1.1", index = "default", target = "luau" }, "standard"]
+[graph."jiwonz/luau_path@0.1.3 luau"]
+direct = ["luau_path", { name = "jiwonz/luau_path", version = "^0.1.3", index = "default", target = "luau" }, "standard"]
 resolved_ty = "standard"
 
-[graph."jiwonz/luau_path@0.1.1 luau".dependencies]
+[graph."jiwonz/luau_path@0.1.3 luau".dependencies]
 "jiwonz/luau_disk@0.1.4 luau" = "luau_disk"
 
-[graph."jiwonz/luau_path@0.1.1 luau".pkg_ref]
+[graph."jiwonz/luau_path@0.1.3 luau".pkg_ref]
 ref_ty = "pesde"
 index_url = "https://github.com/daimond113/pesde-index"
 
-[graph."jiwonz/luau_path@0.1.1 luau".pkg_ref.dependencies]
-luau_disk = [{ name = "jiwonz/luau_disk", version = "^0.1.2", index = "https://github.com/pesde-pkg/index" }, "standard"]
+[graph."jiwonz/luau_path@0.1.3 luau".pkg_ref.dependencies]
+luau_disk = [{ name = "jiwonz/luau_disk", version = "^0.1.4", index = "https://github.com/pesde-pkg/index" }, "standard"]
 
 [graph."jiwonz/pathfs@0.3.2 lune"]
 resolved_ty = "standard"
 
 [graph."jiwonz/pathfs@0.3.2 lune".dependencies]
 "corecii/greentea@0.4.11 lune" = "greentea"
-"jiwonz/luau_path@0.1.1 luau" = "luau_path"
+"jiwonz/luau_path@0.1.3 luau" = "luau_path"
 
 [graph."jiwonz/pathfs@0.3.2 lune".pkg_ref]
 ref_ty = "pesde"
@@ -135,7 +135,7 @@ resolved_ty = "standard"
 
 [graph."jiwonz/pathfs@0.5.2 lune".dependencies]
 "corecii/greentea@0.4.11 lune" = "greentea"
-"jiwonz/luau_path@0.1.1 luau" = "luau_path"
+"jiwonz/luau_path@0.1.3 luau" = "luau_path"
 
 [graph."jiwonz/pathfs@0.5.2 lune".pkg_ref]
 ref_ty = "pesde"
@@ -154,7 +154,7 @@ resolved_ty = "standard"
 
 [graph."jiwonz/pathfs@0.6.0-rc.2 lune".dependencies]
 "corecii/greentea@0.4.11 lune" = "greentea"
-"jiwonz/luau_path@0.1.1 luau" = "luau_path"
+"jiwonz/luau_path@0.1.3 luau" = "luau_path"
 
 [graph."jiwonz/pathfs@0.6.0-rc.2 lune".pkg_ref]
 ref_ty = "pesde"
@@ -189,14 +189,14 @@ resolved_ty = "standard"
 
 [graph."lukadev_0/option@1.2.0 lune".pkg_ref]
 ref_ty = "pesde"
-index_url = "https://github.com/pesde-pkg/index"
+index_url = "https://github.com/daimond113/pesde-index"
 
 [graph."lukadev_0/result@1.2.0 lune"]
 resolved_ty = "standard"
 
 [graph."lukadev_0/result@1.2.0 lune".pkg_ref]
 ref_ty = "pesde"
-index_url = "https://github.com/pesde-pkg/index"
+index_url = "https://github.com/daimond113/pesde-index"
 
 [graph."pesde/luau_lsp@1.42.1 lune"]
 direct = ["luau_lsp", { name = "pesde/luau_lsp", version = "^1.42.1", index = "default" }, "dev"]
@@ -264,7 +264,7 @@ resolved_ty = "standard"
 
 [graph."pesde/toolchainlib@0.1.12 lune".pkg_ref]
 ref_ty = "pesde"
-index_url = "https://github.com/pesde-pkg/index"
+index_url = "https://github.com/daimond113/pesde-index"
 
 [graph."pesde/toolchainlib@0.1.12 lune".pkg_ref.dependencies]
 dirs = [{ name = "jiwonz/dirs", version = "^0.3.0", index = "https://github.com/pesde-pkg/index" }, "standard"]
