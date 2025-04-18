@@ -18,6 +18,7 @@ export type Directory = typeof(setmetatable({} :: typeof(DirectoryTableType:type
 
 type DirectoryImpl = {
 	__index: DirectoryImpl,
+	__tostring: (self: Directory) -> string,
 	new: (dirPath: typeof(AsPathType:type())) -> Directory,
 	fromExisting: (dirPath: typeof(AsPathType:type())) -> Directory,
 	create: (dirPath: typeof(AsPathType:type()), overwrite: typeof(optionalBooleanType:type())) -> Directory,
@@ -30,6 +31,12 @@ type DirectoryImpl = {
 
 local Directory = {} :: DirectoryImpl
 Directory.__index = Directory
+
+function Directory.__tostring(self)
+	DirectoryTableType:assert(self)
+
+	return `Directory<{self.path}>`
+end
 
 function Directory.new(dirPath)
 	AsPathType:assert(dirPath)
