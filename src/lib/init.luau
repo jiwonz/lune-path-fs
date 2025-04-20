@@ -29,6 +29,7 @@ export type Component = types.Component
 local PathType = types.PathType
 local AsPathType = types.AsPathType
 local optionalBooleanType = types.optionalBooleanType
+local ContentsType = types.ContentsType
 
 --[=[
 	@class pathfs
@@ -786,6 +787,20 @@ function pathfs.watchDescendantEntryRemoved(
 			task.wait(1)
 		end
 	end)
+end
+
+local FileOrAsPathType = gt.build(gt.union(File.type:type(), AsPathType:type()))
+function pathfs.writeFileAll(fileOrPath: typeof(FileOrAsPathType:type()), contents: typeof(ContentsType:type()))
+	FileOrAsPathType:assert(fileOrPath)
+	ContentsType:assert(contents)
+
+	-- selene: allow(shadowing)
+	local path = createPath(if File.is(fileOrPath) then (fileOrPath :: File).path else fileOrPath :: AsPath)
+	local parent = path:parent()
+	if parent then
+		fs.writeDir(parent)
+	end
+	fs.writeFile(path, contents)
 end
 
 return pathfs

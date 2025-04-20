@@ -6,3 +6,5 @@ file:removeFile()
 
 local dir = pathfs.Directory.create("hi")
 dir:removeDir()
+
+pathfs.writeFileAll(pathfs.Path.new("a/b/c"):join(file.path), "hello2")
