@@ -1,12 +1,9 @@
 # lune-pathfs
 luau-path + @lune/fs and some utilities
 
-## v0.6.0-rc.3
-### Changed
-- Rename `pathfs.findDirectory` to `pathfs.findDir`
-
+## v0.6.0-rc.4
 ### Added
-- Add following utility functions: `pathfs.getEntries`, `pathfs.getDescendantEntries`, `pathfs.watchEntryAdded`, `pathfs.watchEntryRemoved`, `pathfs.watchDescendantEntryAdded`, and `pathfs.watchDescendantEntryRemoved`
+- Add `pathfs.writeFileAll`
 
 ## Features
 - Includes typed `luau-path` utility (now fully typed)
@@ -59,6 +56,7 @@ end)
 pathfs.watchDescendantEntryRemoved("path/to/dir", function()
 	print("removed")
 end)
+pathfs.writeFileAll("a/b/c/d/lol", "hi")
 
 ```
 
@@ -67,6 +65,6 @@ end)
 - [ffrostfall/lunePackages](https://github.com/ffrostfall/lunePackages/blob/e6335a8c44957afbf1b00e3ecca37ac6a03af14d/watch/init.luau) - watch utilities base implementations
 
 ## TO-DOs
-- [ ] Generate markdown docs from moonwave comments for pesde docs
+- [ ] Generate markdown docs from Moonwave comments for pesde docs
 - [ ] Add utils tests
-- [ ] Write CHANGELOG.md instead writing in README.md
+- [ ] Write CHANGELOG.md instead writing in README.md (maybe from v0.6.0)
