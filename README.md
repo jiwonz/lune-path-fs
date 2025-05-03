@@ -51,12 +51,24 @@ pathfs.watchEntryRemoved("path/to/dir", function(removedEntry)
 	print("removed:", removedEntry)
 end)
 pathfs.watchDescendantEntryAdded("path/to/dir", function(addedEntry)
-	print("added", addedEntry)
+	print("added:", addedEntry)
 end)
 pathfs.watchDescendantEntryRemoved("path/to/dir", function(removedEntry)
-	print("removed", removedEntry)
+	print("removed:", removedEntry)
 end)
 pathfs.writeFileAll("a/b/c/d/lol", "hi")
+local disconnectObserver = pathfs.observeEntry(".playground/test", function(entry)
+	print("observed:", entry)
+	return function()
+		print("[observer] detected a cleanup:", entry)
+	end
+end)
+local disconnectObserver = pathfs.observeDescendantEntry(".playground/test", function(entry)
+	print("observed:", entry)
+	return function()
+		print("[observer] detected a cleanup:", entry)
+	end
+end)
 
 ```
 
