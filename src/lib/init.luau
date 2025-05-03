@@ -404,7 +404,12 @@ type DirEntry = {
 	name: string,
 	file: File?,
 	dir: Directory?,
+	path: Path,
 }
+
+local function hashDirEntry(entry: DirEntry): string
+	return entry.path:toString()
+end
 
 local function directoryToPath(dir: typeof(directoryType:type())): typeof(PathType:type())
 	local path: typeof(PathType:type()) = if Directory.is(dir)
@@ -412,7 +417,7 @@ local function directoryToPath(dir: typeof(directoryType:type())): typeof(PathTy
 		else createPath(dir :: typeof(AsPathType:type()))
 
 	if not fs.isDir(path) then
-		error("The provided path is not a valid directory")
+		error(`The provided path \`{path}\` is not a valid directory`)
 	end
 
 	return path
@@ -443,11 +448,12 @@ function pathfs.getEntries(directory: typeof(directoryType:type())): { DirEntry 
 	local entries: { DirEntry } = {}
 
 	for _, entryName in fs.readDir(directory) do
-		local fullPath = directory:join(entryName)
+		local path = directory:join(entryName)
 		table.insert(entries, {
 			name = entryName,
-			file = pathfs.findFile(fullPath),
-			directory = pathfs.findDir(fullPath),
+			file = pathfs.findFile(path),
+			directory = pathfs.findDir(path),
+			path = path,
 		})
 	end
 
@@ -479,16 +485,17 @@ function pathfs.getDescendantEntries(directory: typeof(directoryType:type())): {
 	local entries: { DirEntry } = {}
 
 	for _, entryName in fs.readDir(directory) do
-		local fullPath = directory:join(entryName)
+		local path = directory:join(entryName)
 
 		table.insert(entries, {
 			name = entryName,
-			file = pathfs.findFile(fullPath),
-			directory = pathfs.findDir(fullPath),
+			file = pathfs.findFile(path),
+			directory = pathfs.findDir(path),
+			path = path,
 		})
 
-		if fs.isDir(fullPath) then
-			local deepEntries = pathfs.getDescendantEntries(fullPath)
+		if fs.isDir(path) then
+			local deepEntries = pathfs.getDescendantEntries(path)
 
 			for _, deepEntry: DirEntry in deepEntries do
 				table.insert(entries, deepEntry)
@@ -597,6 +604,44 @@ function pathfs.watchFile(fileName: typeof(AsPathType:type()), onChanged: typeof
 	end)
 end
 
+local function watchEntryAdded(
+	getEntries: (directory: typeof(directoryType:type())) -> { DirEntry },
+	directory: typeof(directoryType:type()),
+	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
+): thread
+	directoryType:assert(directory)
+	callbackType:assert(onAdded)
+
+	local oldEntries: { [string]: DirEntry } = {}
+	for _, entry in getEntries(directory) do
+		oldEntries[hashDirEntry(entry)] = entry
+	end
+
+	return task.spawn(function()
+		while true do
+			local newEntries: { [string]: DirEntry } = {}
+			do
+				local ok, entries = pcall(getEntries, directory)
+				if not ok then -- This may no longer be a valid directory
+					return
+				end
+				for _, entry in entries do
+					newEntries[hashDirEntry(entry)] = entry
+				end
+			end
+			for _, newEntry in newEntries do
+				if not oldEntries[hashDirEntry(newEntry)] then
+					task.spawn(onAdded, newEntry)
+				end
+			end
+
+			oldEntries = newEntries
+
+			task.wait(1)
+		end
+	end)
+end
+
 --[=[
 	@within pathfs
 
@@ -616,25 +661,59 @@ function pathfs.watchEntryAdded(
 	directory: typeof(directoryType:type()),
 	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
 ): thread
-	directoryType:assert(directory)
-	callbackType:assert(onAdded)
+	return watchEntryAdded(pathfs.getEntries, directory, onAdded)
+end
 
-	local oldEntries = pathfs.getEntries(directory)
+--[=[
+	@within pathfs
+
+	Watch a directory for added descendant entries.
+
+	### Example
+	```lua
+	pathfs.watchDescendantEntryAdded("path/to/dir", function(addedEntry)
+		print("Added entry:", addedEntry.name)
+	end)
+	```
+
+	@param directory -- The directory to watch, of type Directory or AsPathType.
+	@param onAdded -- The callback function to call when an entry is added.
+]=]
+function pathfs.watchDescendantEntryAdded(
+	directory: typeof(directoryType:type()),
+	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
+): thread
+	return watchEntryAdded(pathfs.getDescendantEntries, directory, onAdded)
+end
+
+local function watchEntryRemoved(
+	getEntries: (directory: typeof(directoryType:type())) -> { DirEntry },
+	directory: typeof(directoryType:type()),
+	onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())
+): thread
+	directoryType:assert(directory)
+	callbackType:assert(onRemoved)
+
+	local oldEntries: { [string]: DirEntry } = {}
+	for _, entry in getEntries(directory) do
+		oldEntries[hashDirEntry(entry)] = entry
+	end
 
 	return task.spawn(function()
 		while true do
-			local newEntries = pathfs.getEntries(directory)
-			for _, newEntry in newEntries do
-				local found = false
-				for _, oldEntry in oldEntries do
-					if newEntry.name == oldEntry.name then
-						found = true
-						break
-					end
+			local newEntries: { [string]: DirEntry } = {}
+			do
+				local ok, entries = pcall(getEntries, directory)
+				if not ok then -- This may no longer be a valid directory
+					return
 				end
-
-				if not found then
-					onAdded(newEntry)
+				for _, entry in entries do
+					newEntries[hashDirEntry(entry)] = entry
+				end
+			end
+			for _, oldEntry in oldEntries do
+				if not newEntries[hashDirEntry(oldEntry)] then
+					task.spawn(onRemoved, oldEntry)
 				end
 			end
 
@@ -664,87 +743,13 @@ function pathfs.watchEntryRemoved(
 	directory: typeof(directoryType:type()),
 	onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())
 ): thread
-	directoryType:assert(directory)
-	callbackType:assert(onRemoved)
-
-	local oldEntries = pathfs.getEntries(directory)
-
-	return task.spawn(function()
-		while true do
-			local newEntries = pathfs.getEntries(directory)
-			for _, oldEntry in oldEntries do
-				local found = false
-				for _, newEntry in newEntries do
-					if oldEntry.name == newEntry.name then
-						found = true
-						break
-					end
-				end
-
-				if not found then
-					onRemoved(oldEntry)
-				end
-			end
-
-			oldEntries = newEntries
-
-			task.wait(1)
-		end
-	end)
+	return watchEntryRemoved(pathfs.getEntries, directory, onRemoved)
 end
 
 --[=[
 	@within pathfs
 
-	Watch a directory for added entries.
-
-	### Example
-	```lua
-	pathfs.watchDescendantEntryAdded("path/to/dir", function(addedEntry)
-		print("Added entry:", addedEntry.name)
-	end)
-	```
-
-	@param directory -- The directory to watch, of type Directory or AsPathType.
-	@param onAdded -- The callback function to call when an entry is added.
-]=]
-function pathfs.watchDescendantEntryAdded(
-	directory: typeof(directoryType:type()),
-	onAdded: typeof(callbackType:type() :: (addedEntry: DirEntry) -> ())
-): thread
-	directoryType:assert(directory)
-	callbackType:assert(onAdded)
-
-	local oldEntries = pathfs.getDescendantEntries(directory)
-
-	return task.spawn(function()
-		while true do
-			local newEntries = pathfs.getDescendantEntries(directory)
-			for _, newEntry in newEntries do
-				local found = false
-				for _, oldEntry in oldEntries do
-					if newEntry.name == oldEntry.name then
-						found = true
-						break
-					end
-				end
-
-				if not found then
-					onAdded(newEntry)
-				end
-			end
-
-			oldEntries = newEntries
-
-			task.wait(1)
-		end
-	end)
-end
-
---[=[
-	@within pathfs
-
-	Watch a directory for removed entries.
+	Watch a directory for removed descendant entries.
 
 	### Example
 	```lua
@@ -760,33 +765,7 @@ function pathfs.watchDescendantEntryRemoved(
 	directory: typeof(directoryType:type()),
 	onRemoved: typeof(callbackType:type() :: (removedEntry: DirEntry) -> ())
 ): thread
-	directoryType:assert(directory)
-	callbackType:assert(onRemoved)
-
-	local oldEntries = pathfs.getDescendantEntries(directory)
-
-	return task.spawn(function()
-		while true do
-			local newEntries = pathfs.getDescendantEntries(directory)
-			for _, oldEntry in oldEntries do
-				local found = false
-				for _, newEntry in newEntries do
-					if oldEntry.name == newEntry.name then
-						found = true
-						break
-					end
-				end
-
-				if not found then
-					onRemoved(oldEntry)
-				end
-			end
-
-			oldEntries = newEntries
-
-			task.wait(1)
-		end
-	end)
+	return watchEntryRemoved(pathfs.getDescendantEntries, directory, onRemoved)
 end
 
 local FileOrAsPathType = gt.build(gt.union(File.type:type(), AsPathType:type()))
@@ -801,6 +780,171 @@ function pathfs.writeFileAll(fileOrPath: typeof(FileOrAsPathType:type()), conten
 		fs.writeDir(parent)
 	end
 	fs.writeFile(path, contents)
+end
+
+type ObserveState = "__inflight__" | "__dead__"
+type EntryValue = {
+	stateOrCleanup: ObserveState | (() -> ())?,
+	entry: DirEntry,
+}
+
+local function observeEntry(
+	getEntries: (directory: typeof(directoryType:type())) -> { DirEntry },
+	directory: typeof(directoryType:type()),
+	callback: typeof(callbackType:type() :: (entry: DirEntry) -> (() -> ())?)
+): () -> ()
+	directoryType:assert(directory)
+	callbackType:assert(callback)
+
+	local entryValues: {
+		[string]: EntryValue?,
+	} = {}
+	local disconnected = false
+	local function attemptStartup(entryValue: EntryValue)
+		entryValue.stateOrCleanup = "__inflight__"
+
+		task.defer(function()
+			if entryValue.stateOrCleanup ~= "__inflight__" then
+				return
+			end
+
+			local success, errOrCleanup = pcall(function()
+				local cleanup = callback(entryValue.entry)
+				if cleanup ~= nil and type(cleanup) ~= "function" then
+					error("observeDescendantEntry's callback must return a cleanup function or nil")
+				end
+				return cleanup
+			end)
+
+			if not success then
+				print(`Error in observeDescendantEntry callback:\n\t{errOrCleanup}`)
+				return
+			end
+
+			if entryValue.stateOrCleanup == "__inflight__" then
+				entryValue.stateOrCleanup = errOrCleanup
+			elseif type(errOrCleanup) == "function" then
+				task.spawn(errOrCleanup)
+			end
+		end)
+	end
+
+	local function attemptCleanup(entryValue: EntryValue)
+		local cleanup = entryValue.stateOrCleanup
+		entryValue.stateOrCleanup = "__dead__"
+		if type(cleanup) == "function" then
+			task.spawn(cleanup)
+		end
+	end
+
+	local function onAdded(entry: DirEntry)
+		if disconnected then
+			return
+		end
+		local hash = hashDirEntry(entry)
+		if entryValues[hash] then
+			return
+		end
+
+		local entryValue = {
+			stateOrCleanup = "__dead__" :: "__dead__",
+			entry = entry,
+		}
+		entryValues[hash] = entryValue
+
+		attemptStartup(entryValue)
+	end
+
+	local function onRemoved(entry: DirEntry)
+		local hash = hashDirEntry(entry)
+		local entryValue = entryValues[hash]
+		if not entryValue then
+			return
+		end
+
+		attemptCleanup(entryValue)
+		entryValues[hash] = nil
+	end
+
+	local addedWatchingThread = watchEntryAdded(getEntries, directory, onAdded)
+	local removedWatchingThread = watchEntryRemoved(getEntries, directory, onRemoved)
+
+	task.defer(function()
+		if disconnected then
+			return
+		end
+		for _, entry in getEntries(directory) do
+			task.spawn(onAdded, entry)
+		end
+	end)
+
+	return function()
+		disconnected = true
+		task.cancel(addedWatchingThread)
+		task.cancel(removedWatchingThread)
+		local value
+		do
+			local _, newValue = next(entryValues)
+			value = newValue
+		end
+		while value do
+			onRemoved(value.entry)
+			local _, newValue = next(entryValues)
+			value = newValue
+		end
+	end
+end
+
+--[=[
+	@within pathfs
+
+	Observe a directory for changes.
+
+	### Example
+	```lua
+	pathfs.observeEntry("path/to/dir", function(entry)
+		print("Entry changed:", entry.name)
+
+		return function()
+			print("Entry cleanup:", entry.name)
+		end
+	end)
+	```
+
+	@param directory -- The directory to observe, of type Directory or AsPathType.
+	@param callback -- The callback function to call when an entry is added or removed.
+]=]
+function pathfs.observeEntry(
+	directory: typeof(directoryType:type()),
+	callback: typeof(callbackType:type() :: (entry: DirEntry) -> (() -> ())?)
+): () -> ()
+	return observeEntry(pathfs.getEntries, directory, callback)
+end
+
+--[=[
+	@within pathfs
+
+	Observe a directory for changes in its descendants.
+
+	### Example
+	```lua
+	pathfs.observeDescendantEntry("path/to/dir", function(entry)
+		print("Descendant entry changed:", entry.name)
+
+		return function()
+			print("Cleanup for entry:", entry.name)
+		end
+	end)
+	```
+
+	@param directory -- The directory to observe, of type Directory or AsPathType.
+	@param callback -- The callback function to call when an entry is added or removed.
+]=]
+function pathfs.observeDescendantEntry(
+	directory: typeof(directoryType:type()),
+	callback: typeof(callbackType:type() :: (entry: DirEntry) -> (() -> ())?)
+): () -> ()
+	return observeEntry(pathfs.getDescendantEntries, directory, callback)
 end
 
 return pathfs
