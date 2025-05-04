@@ -13,8 +13,12 @@ lib = "src/lib/init.luau"
 [indices]
 default = "https://github.com/daimond113/pesde-index"
 
+[engines]
+lune = "^0.8.9"
+pesde = "^0.7.0-rc.1"
+
 [dependencies]
-luau_path = { name = "jiwonz/luau_path", version = "^0.1.3", target = "luau" }
+luau_path = { name = "jiwonz/luau_path", version = "^0.1.4", target = "luau" }
 greentea = { name = "corecii/greentea", version = "^0.4.11" }
 
 [dev_dependencies]
