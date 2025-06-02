@@ -561,9 +561,7 @@ function pathfs.watchDirectories(
 		-- selene: allow(shadowing)
 		local dir = directoryToPath(dir)
 		for _, filePath in pathfs.getDescendantEntries(dir) do
-			if filePath.dir then
-				table.insert(paths, filePath.dir.path:toString())
-			end
+			table.insert(paths, filePath.path:toString())
 		end
 	end
 
